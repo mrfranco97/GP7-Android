@@ -1,5 +1,7 @@
 package com.example.xplorenow_android;
 
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
@@ -9,6 +11,7 @@ import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.example.xplorenow_android.databinding.ItemActivityBinding;
 
 import java.util.Locale;
@@ -48,12 +51,12 @@ public class ActivityAdapter extends PagingDataAdapter<ActivityItem, ActivityAda
             binding.textDestination.setText(item.getDestination());
             binding.textCategory.setText(item.getCategory());
             binding.textDuration.setText(item.getDuration());
-            binding.textPrice.setText(String.format(Locale.getDefault(), "$%.2f", item.getPrice()));
-            binding.textSpots.setText(String.format(Locale.getDefault(), "%d cupos disponibles", item.getAvailableSpots()));
+            binding.textPrice.setText(String.format(Locale.getDefault(), "$%.0f", item.getPrice()));
 
             Glide.with(binding.imageActivity.getContext())
                     .load(item.getImageUrl())
-                    .placeholder(android.R.drawable.ic_menu_gallery)
+                    .transition(DrawableTransitionOptions.withCrossFade())
+                    .placeholder(new ColorDrawable(Color.parseColor("#F0F2F5")))
                     .into(binding.imageActivity);
         }
     }
@@ -68,7 +71,8 @@ public class ActivityAdapter extends PagingDataAdapter<ActivityItem, ActivityAda
                 @Override
                 public boolean areContentsTheSame(@NonNull ActivityItem oldItem, @NonNull ActivityItem newItem) {
                     return oldItem.getName().equals(newItem.getName()) &&
-                            oldItem.getDestination().equals(newItem.getDestination());
+                            oldItem.getDestination().equals(newItem.getDestination()) &&
+                            oldItem.getPrice() == newItem.getPrice();
                 }
             };
 }

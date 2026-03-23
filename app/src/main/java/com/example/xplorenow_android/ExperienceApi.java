@@ -8,6 +8,7 @@ public interface ExperienceApi {
     @GET("api/experiences")
     Call<ExperienceResponse> getExperiences(
             @Query("page") int page,
-            @Query("limit") int limit
+            @Query("limit") int limit,
+            @Query("category") String category
     );
 }

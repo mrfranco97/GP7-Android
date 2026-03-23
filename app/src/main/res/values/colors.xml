@@ -1,5 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Modern Explorer Palette -->
+    <color name="primary">#1A1A1A</color>
+    <color name="primary_variant">#2D3436</color>
+    <color name="accent">#0066FF</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="background">#F8F9FA</color>
+    <color name="text_main">#1A1A1A</color>
+    <color name="text_secondary">#757575</color>
+    <color name="divider">#F0F0F0</color>
+    <color name="chip_background">#F0F2F5</color>
+
+    <!-- Standard colors -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 </resources>

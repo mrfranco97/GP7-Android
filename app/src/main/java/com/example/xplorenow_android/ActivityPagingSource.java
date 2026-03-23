@@ -20,9 +20,11 @@ public class ActivityPagingSource extends ListenableFuturePagingSource<Integer, 
 
     private static final String TAG = "ActivityPagingSource";
     private final ExperienceApi api;
+    private final String category;
 
-    public ActivityPagingSource(ExperienceApi api) {
+    public ActivityPagingSource(ExperienceApi api, String category) {
         this.api = api;
+        this.category = category;
     }
 
     @Nullable
@@ -38,11 +40,13 @@ public class ActivityPagingSource extends ListenableFuturePagingSource<Integer, 
         int page = key != null ? key : 1;
         int limit = loadParams.getLoadSize();
 
-        Log.d(TAG, "Loading page: " + page + " with limit: " + limit);
+        Log.d(TAG, "Loading page: " + page + " with limit: " + limit + " category: " + category);
 
         SettableFuture<LoadResult<Integer, ActivityItem>> future = SettableFuture.create();
 
-        api.getExperiences(page, limit).enqueue(new Callback<ExperienceResponse>() {
+        String categoryParam = (category == null || "All".equals(category)) ? null : category.toLowerCase();
+
+        api.getExperiences(page, limit, categoryParam).enqueue(new Callback<ExperienceResponse>() {
             @Override
             public void onResponse(@NonNull Call<ExperienceResponse> call, @NonNull Response<ExperienceResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
