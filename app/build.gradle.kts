@@ -4,11 +4,7 @@ plugins {
 
 android {
     namespace = "com.example.xplorenow_android"
-    compileSdk {
-        version = release(36) {
-            minorApiLevel = 1
-        }
-    }
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.example.xplorenow_android"
@@ -44,6 +40,14 @@ dependencies {
     implementation(libs.constraintlayout)
     implementation(libs.navigation.fragment)
     implementation(libs.navigation.ui)
+    
+    implementation(libs.paging.runtime)
+    implementation(libs.paging.guava)
+    implementation(libs.guava)
+    implementation(libs.glide)
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.converter.gson)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
