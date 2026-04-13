@@ -12,41 +12,41 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
-import com.example.xplorenow_android.databinding.ItemActivityBinding;
+import com.example.xplorenow_android.databinding.ItemExperienceBinding;
 
 import java.util.Locale;
 
-public class ActivityAdapter extends PagingDataAdapter<ActivityItem, ActivityAdapter.ActivityViewHolder> {
+public class ExperienceAdapter extends PagingDataAdapter<Experience, ExperienceAdapter.ExperienceViewHolder> {
 
-    public ActivityAdapter() {
+    public ExperienceAdapter() {
         super(DIFF_CALLBACK);
     }
 
     @NonNull
     @Override
-    public ActivityViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        ItemActivityBinding binding = ItemActivityBinding.inflate(
+    public ExperienceViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        ItemExperienceBinding binding = ItemExperienceBinding.inflate(
                 LayoutInflater.from(parent.getContext()), parent, false);
-        return new ActivityViewHolder(binding);
+        return new ExperienceViewHolder(binding);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ActivityViewHolder holder, int position) {
-        ActivityItem item = getItem(position);
+    public void onBindViewHolder(@NonNull ExperienceViewHolder holder, int position) {
+        Experience item = getItem(position);
         if (item != null) {
             holder.bind(item);
         }
     }
 
-    public static class ActivityViewHolder extends RecyclerView.ViewHolder {
-        private final ItemActivityBinding binding;
+    public static class ExperienceViewHolder extends RecyclerView.ViewHolder {
+        private final ItemExperienceBinding binding;
 
-        public ActivityViewHolder(ItemActivityBinding binding) {
+        public ExperienceViewHolder(ItemExperienceBinding binding) {
             super(binding.getRoot());
             this.binding = binding;
         }
 
-        public void bind(ActivityItem item) {
+        public void bind(Experience item) {
             binding.textName.setText(item.getName());
             binding.textDestination.setText(item.getDestination());
             binding.textCategory.setText(item.getCategory());
@@ -61,15 +61,15 @@ public class ActivityAdapter extends PagingDataAdapter<ActivityItem, ActivityAda
         }
     }
 
-    private static final DiffUtil.ItemCallback<ActivityItem> DIFF_CALLBACK =
-            new DiffUtil.ItemCallback<ActivityItem>() {
+    private static final DiffUtil.ItemCallback<Experience> DIFF_CALLBACK =
+            new DiffUtil.ItemCallback<Experience>() {
                 @Override
-                public boolean areItemsTheSame(@NonNull ActivityItem oldItem, @NonNull ActivityItem newItem) {
+                public boolean areItemsTheSame(@NonNull Experience oldItem, @NonNull Experience newItem) {
                     return oldItem.getId() == newItem.getId();
                 }
 
                 @Override
-                public boolean areContentsTheSame(@NonNull ActivityItem oldItem, @NonNull ActivityItem newItem) {
+                public boolean areContentsTheSame(@NonNull Experience oldItem, @NonNull Experience newItem) {
                     return oldItem.getName().equals(newItem.getName()) &&
                             oldItem.getDestination().equals(newItem.getDestination()) &&
                             oldItem.getPrice() == newItem.getPrice();

@@ -16,8 +16,6 @@ public class MainActivity extends AppCompatActivity {
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-
-        // Eliminamos Toolbar y FAB para diseño inmersivo Premium
     }
 
     @Override

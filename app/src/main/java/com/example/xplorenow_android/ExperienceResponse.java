@@ -5,9 +5,9 @@ import java.util.List;
 
 public class ExperienceResponse {
     @SerializedName("items")
-    private List<ActivityItem> items;
+    private List<Experience> items;
 
-    public List<ActivityItem> getItems() {
+    public List<Experience> getItems() {
         return items;
     }
 }

@@ -10,12 +10,12 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.example.xplorenow_android.databinding.FragmentFirstBinding;
+import com.example.xplorenow_android.databinding.FragmentExperienceListBinding;
 
-public class FirstFragment extends Fragment {
+public class ExperienceListFragment extends Fragment {
 
-    private FragmentFirstBinding binding;
-    private ActivityAdapter adapter;
+    private FragmentExperienceListBinding binding;
+    private ExperienceAdapter adapter;
     private ExperienceViewModel viewModel;
 
     @Override
@@ -23,7 +23,7 @@ public class FirstFragment extends Fragment {
             @NonNull LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState
     ) {
-        binding = FragmentFirstBinding.inflate(inflater, container, false);
+        binding = FragmentExperienceListBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
 
@@ -36,8 +36,8 @@ public class FirstFragment extends Fragment {
     }
 
     private void setupRecyclerView() {
-        adapter = new ActivityAdapter();
-        binding.recyclerActivities.setAdapter(adapter);
+        adapter = new ExperienceAdapter();
+        binding.recyclerExperiences.setAdapter(adapter);
     }
 
     private void setupViewModel() {
@@ -52,7 +52,7 @@ public class FirstFragment extends Fragment {
             if (v instanceof Button) {
                 String category = ((Button) v).getText().toString();
                 viewModel.setCategory(category);
-                binding.recyclerActivities.scrollToPosition(0);
+                binding.recyclerExperiences.scrollToPosition(0);
             }
         };
 
