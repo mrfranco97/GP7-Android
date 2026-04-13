@@ -44,6 +44,7 @@ public class ExperienceListFragment extends Fragment {
 
     private void setupViewModel() {
         viewModel = new ViewModelProvider(this).get(ExperienceViewModel.class);
+        
         viewModel.getPagingDataLiveData().observe(getViewLifecycleOwner(), pagingData -> {
             adapter.submitData(getViewLifecycleOwner().getLifecycle(), pagingData);
         });

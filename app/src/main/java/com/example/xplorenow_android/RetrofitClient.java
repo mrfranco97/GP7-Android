@@ -24,4 +24,8 @@ public class RetrofitClient {
     public static AuthApi getAuthApi() {
         return getRetrofitInstance().create(AuthApi.class);
     }
+
+    public static CatalogApi getCatalogApi() {
+        return getRetrofitInstance().create(CatalogApi.class);
+    }
 }

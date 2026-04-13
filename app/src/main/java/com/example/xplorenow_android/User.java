@@ -13,11 +13,17 @@ public class User {
     private String phone;
     @SerializedName("role")
     private String role;
+    @SerializedName("preferences")
+    private UserPreferences preferences;
 
     public User(String name, String email, String phone) {
         this.name = name;
         this.email = email;
         this.phone = phone;
+    }
+
+    public User(UserPreferences preferences) {
+        this.preferences = preferences;
     }
 
     public String getId() { return id; }
@@ -28,4 +34,6 @@ public class User {
     public String getPhone() { return phone; }
     public void setPhone(String phone) { this.phone = phone; }
     public String getRole() { return role; }
+    public UserPreferences getPreferences() { return preferences; }
+    public void setPreferences(UserPreferences preferences) { this.preferences = preferences; }
 }
