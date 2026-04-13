@@ -9,6 +9,7 @@ import android.widget.Button;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.Navigation;
 
 import com.example.xplorenow_android.databinding.FragmentExperienceListBinding;
 
@@ -33,6 +34,7 @@ public class ExperienceListFragment extends Fragment {
         setupRecyclerView();
         setupViewModel();
         setupFilters();
+        setupProfileNavigation();
     }
 
     private void setupRecyclerView() {
@@ -61,6 +63,12 @@ public class ExperienceListFragment extends Fragment {
         binding.btnFilterCulture.setOnClickListener(filterListener);
         binding.btnFilterGastronomy.setOnClickListener(filterListener);
         binding.btnFilterAdventure.setOnClickListener(filterListener);
+    }
+
+    private void setupProfileNavigation() {
+        binding.imageProfileAvatar.setOnClickListener(v -> {
+            Navigation.findNavController(v).navigate(R.id.action_ExperienceListFragment_to_ProfileFragment);
+        });
     }
 
     @Override

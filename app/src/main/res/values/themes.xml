@@ -7,7 +7,7 @@
         <item name="colorSecondary">@color/accent</item>
         <item name="android:windowBackground">@color/background</item>
 
-        <!-- Support para componentes de legado (Evita el crash de ChipGroup) -->
+        <!-- Support para componentes de legado -->
         <item name="colorPrimarySurface">@color/primary</item>
         <item name="colorOnSurface">@color/text_main</item>
 
@@ -22,5 +22,10 @@
         <item name="cornerSizeTopRight">20dp</item>
         <item name="cornerSizeBottomLeft">0dp</item>
         <item name="cornerSizeBottomRight">0dp</item>
+    </style>
+
+    <style name="CircleImageView" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50%</item>
     </style>
 </resources>
