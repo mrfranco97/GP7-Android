@@ -11,21 +11,21 @@ import androidx.paging.PagingLiveData;
 
 public class ExperienceViewModel extends ViewModel {
     private final MutableLiveData<String> categoryLiveData = new MutableLiveData<>("All");
-    private final LiveData<PagingData<ActivityItem>> pagingDataLiveData;
+    private final LiveData<PagingData<Experience>> pagingDataLiveData;
 
     public ExperienceViewModel() {
         ExperienceApi api = RetrofitClient.getExperienceApi();
         
         pagingDataLiveData = Transformations.switchMap(categoryLiveData, category -> {
-            Pager<Integer, ActivityItem> pager = new Pager<>(
+            Pager<Integer, Experience> pager = new Pager<>(
                     new PagingConfig(10, 5, false),
-                    () -> new ActivityPagingSource(api, category)
+                    () -> new ExperiencePagingSource(api, category)
             );
             return PagingLiveData.getLiveData(pager);
         });
     }
 
-    public LiveData<PagingData<ActivityItem>> getPagingDataLiveData() {
+    public LiveData<PagingData<Experience>> getPagingDataLiveData() {
         return pagingDataLiveData;
     }
 

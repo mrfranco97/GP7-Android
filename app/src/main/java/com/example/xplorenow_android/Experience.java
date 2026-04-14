@@ -2,7 +2,7 @@ package com.example.xplorenow_android;
 
 import com.google.gson.annotations.SerializedName;
 
-public class ActivityItem {
+public class Experience {
     @SerializedName("id")
     private int id;
     @SerializedName("name")
@@ -20,7 +20,7 @@ public class ActivityItem {
     @SerializedName("image_url")
     private String imageUrl;
 
-    public ActivityItem(int id, String name, String destination, String category, String duration, double price, int availableSpots, String imageUrl) {
+    public Experience(int id, String name, String destination, String category, String duration, double price, int availableSpots, String imageUrl) {
         this.id = id;
         this.name = name;
         this.destination = destination;

@@ -16,33 +16,33 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class ActivityPagingSource extends ListenableFuturePagingSource<Integer, ActivityItem> {
+public class ExperiencePagingSource extends ListenableFuturePagingSource<Integer, Experience> {
 
-    private static final String TAG = "ActivityPagingSource";
+    private static final String TAG = "ExperiencePagingSource";
     private final ExperienceApi api;
     private final String category;
 
-    public ActivityPagingSource(ExperienceApi api, String category) {
+    public ExperiencePagingSource(ExperienceApi api, String category) {
         this.api = api;
         this.category = category;
     }
 
     @Nullable
     @Override
-    public Integer getRefreshKey(@NonNull PagingState<Integer, ActivityItem> pagingState) {
+    public Integer getRefreshKey(@NonNull PagingState<Integer, Experience> pagingState) {
         return pagingState.getAnchorPosition();
     }
 
     @NonNull
     @Override
-    public ListenableFuture<LoadResult<Integer, ActivityItem>> loadFuture(@NonNull LoadParams<Integer> loadParams) {
+    public ListenableFuture<LoadResult<Integer, Experience>> loadFuture(@NonNull LoadParams<Integer> loadParams) {
         Integer key = loadParams.getKey();
         int page = key != null ? key : 1;
         int limit = loadParams.getLoadSize();
 
         Log.d(TAG, "Loading page: " + page + " with limit: " + limit + " category: " + category);
 
-        SettableFuture<LoadResult<Integer, ActivityItem>> future = SettableFuture.create();
+        SettableFuture<LoadResult<Integer, Experience>> future = SettableFuture.create();
 
         String categoryParam = (category == null || "All".equals(category)) ? null : category.toLowerCase();
 
@@ -50,7 +50,7 @@ public class ActivityPagingSource extends ListenableFuturePagingSource<Integer, 
             @Override
             public void onResponse(@NonNull Call<ExperienceResponse> call, @NonNull Response<ExperienceResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    List<ActivityItem> items = response.body().getItems();
+                    List<Experience> items = response.body().getItems();
                     Log.d(TAG, "Successfully loaded " + items.size() + " items");
                     future.set(new LoadResult.Page<>(
                             items,
