@@ -13,7 +13,11 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
 
 import com.example.xplorenow_android.databinding.FragmentProfileBinding;
+import com.google.android.material.chip.Chip;
 import com.google.android.material.snackbar.Snackbar;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ProfileFragment extends Fragment {
 
@@ -45,6 +49,17 @@ public class ProfileFragment extends Fragment {
                 binding.editName.setText(user.getName());
                 binding.editEmail.setText(user.getEmail());
                 binding.editPhone.setText(user.getPhone());
+                
+                if (viewModel.getInterestsCatalogLiveData().getValue() != null) {
+                    displayInterests(viewModel.getInterestsCatalogLiveData().getValue(), user.getPreferences());
+                }
+            }
+        });
+
+        viewModel.getInterestsCatalogLiveData().observe(getViewLifecycleOwner(), interests -> {
+            User user = viewModel.getUserLiveData().getValue();
+            if (user != null) {
+                displayInterests(interests, user.getPreferences());
             }
         });
 
@@ -68,6 +83,21 @@ public class ProfileFragment extends Fragment {
         });
     }
 
+    private void displayInterests(List<Interest> catalog, UserPreferences preferences) {
+        binding.interestsChipGroup.removeAllViews();
+        List<String> userInterests = (preferences != null && preferences.getTravelInterests() != null) 
+                ? preferences.getTravelInterests() : new ArrayList<>();
+
+        for (Interest interest : catalog) {
+            Chip chip = new Chip(getContext());
+            chip.setText(interest.getLabel());
+            chip.setTag(interest.getKey());
+            chip.setCheckable(true);
+            chip.setChecked(userInterests.contains(interest.getKey()));
+            binding.interestsChipGroup.addView(chip);
+        }
+    }
+
     private void setupListeners() {
         binding.btnSaveProfile.setOnClickListener(v -> {
             String name = binding.editName.getText().toString();
@@ -79,7 +109,15 @@ public class ProfileFragment extends Fragment {
                 return;
             }
 
-            viewModel.updateProfile(name, email, phone);
+            List<String> selectedInterests = new ArrayList<>();
+            for (int i = 0; i < binding.interestsChipGroup.getChildCount(); i++) {
+                Chip chip = (Chip) binding.interestsChipGroup.getChildAt(i);
+                if (chip.isChecked()) {
+                    selectedInterests.add((String) chip.getTag());
+                }
+            }
+
+            viewModel.updateProfile(name, email, phone, selectedInterests);
         });
     }
 
