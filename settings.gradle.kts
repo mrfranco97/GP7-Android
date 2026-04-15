@@ -22,5 +22,6 @@ dependencyResolutionManagement {
     }
 }
 
+
 rootProject.name = "Xplorenow-Android"
 include(":app")
