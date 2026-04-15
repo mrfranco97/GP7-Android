@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
+    id("com.google.dagger.hilt.android")
 }
 
 android {
@@ -47,6 +48,10 @@ dependencies {
     implementation(libs.glide)
     implementation(libs.retrofit)
     implementation(libs.retrofit.converter.gson)
+    implementation(libs.hilt.android)
+    implementation(libs.hilt.android.compiler)
+    annotationProcessor(libs.hilt.compiler)
+
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
