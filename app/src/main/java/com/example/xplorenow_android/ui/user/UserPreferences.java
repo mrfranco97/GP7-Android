@@ -1,4 +1,4 @@
-package com.example.xplorenow_android;
+package com.example.xplorenow_android.ui.user;
 
 import com.google.gson.annotations.SerializedName;
 import java.util.List;

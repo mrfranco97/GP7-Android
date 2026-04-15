@@ -1,4 +1,4 @@
-package com.example.xplorenow_android;
+package com.example.xplorenow_android.ui.experience;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -11,6 +11,7 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
 
+import com.example.xplorenow_android.R;
 import com.example.xplorenow_android.databinding.FragmentExperienceListBinding;
 
 public class ExperienceListFragment extends Fragment {

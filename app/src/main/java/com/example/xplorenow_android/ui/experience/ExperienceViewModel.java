@@ -1,4 +1,4 @@
-package com.example.xplorenow_android;
+package com.example.xplorenow_android.ui.experience;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -9,6 +9,10 @@ import androidx.paging.Pager;
 import androidx.paging.PagingConfig;
 import androidx.paging.PagingData;
 import androidx.paging.PagingLiveData;
+
+import com.example.xplorenow_android.data.model.Experience;
+import com.example.xplorenow_android.data.network.ExperienceApi;
+import com.example.xplorenow_android.data.network.RetrofitClient;
 
 public class ExperienceViewModel extends ViewModel {
     private final MutableLiveData<String> categoryLiveData = new MutableLiveData<>("All");
