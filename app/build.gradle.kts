@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
-    alias("com.google.dagger.hilt.android")
+    alias(libs.plugins.kotlin.android) apply false // AÑADE ESTO
+    alias(libs.plugins.hilt) apply false
 }
 
 android {
@@ -49,7 +50,6 @@ dependencies {
     implementation(libs.retrofit)
     implementation(libs.retrofit.converter.gson)
     implementation(libs.hilt.android)
-    implementation(libs.hilt.android.compiler)
     annotationProcessor(libs.hilt.android.compiler)
 
 
