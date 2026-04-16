@@ -10,6 +10,7 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
+import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.xplorenow_android.R;
 import com.example.xplorenow_android.databinding.FragmentExperienceListBinding;
@@ -18,6 +19,7 @@ public class ExperienceListFragment extends Fragment {
 
     private FragmentExperienceListBinding binding;
     private ExperienceAdapter adapter;
+    private RecommendedAdapter recommendedAdapter;
     private ExperienceViewModel viewModel;
 
     @Override
@@ -33,9 +35,12 @@ public class ExperienceListFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         setupRecyclerView();
+        setupRecommendedCarousel();
         setupViewModel();
         setupFilters();
         setupProfileNavigation();
+
+        viewModel.fetchRecommendations();
     }
 
     private void setupRecyclerView() {
@@ -43,11 +48,26 @@ public class ExperienceListFragment extends Fragment {
         binding.recyclerExperiences.setAdapter(adapter);
     }
 
+    private void setupRecommendedCarousel() {
+        recommendedAdapter = new RecommendedAdapter();
+        binding.recyclerRecommended.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+        binding.recyclerRecommended.setAdapter(recommendedAdapter);
+    }
+
     private void setupViewModel() {
         viewModel = new ViewModelProvider(this).get(ExperienceViewModel.class);
         
         viewModel.getPagingDataLiveData().observe(getViewLifecycleOwner(), pagingData -> {
             adapter.submitData(getViewLifecycleOwner().getLifecycle(), pagingData);
+        });
+
+        viewModel.getRecommendedLiveData().observe(getViewLifecycleOwner(), items -> {
+            if (items != null && !items.isEmpty()) {
+                binding.sectionRecommended.setVisibility(View.VISIBLE);
+                recommendedAdapter.setItems(items);
+            } else {
+                binding.sectionRecommended.setVisibility(View.GONE);
+            }
         });
     }
 
