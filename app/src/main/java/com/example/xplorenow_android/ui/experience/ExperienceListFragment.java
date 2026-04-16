@@ -13,6 +13,7 @@ import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.xplorenow_android.R;
+import com.example.xplorenow_android.RecommendedAdapter;
 import com.example.xplorenow_android.databinding.FragmentExperienceListBinding;
 
 public class ExperienceListFragment extends Fragment {

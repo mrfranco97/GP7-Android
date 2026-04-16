@@ -1,7 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android) apply false // AÑADE ESTO
-    alias(libs.plugins.hilt) apply false
+    alias(libs.plugins.hilt)
 }
 
 android {

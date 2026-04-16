@@ -5,6 +5,9 @@ import androidx.annotation.Nullable;
 import androidx.paging.ListenableFuturePagingSource;
 import androidx.paging.PagingState;
 
+import com.example.xplorenow_android.data.model.Experience;
+import com.example.xplorenow_android.data.network.ExperienceApi;
+import com.example.xplorenow_android.ui.experience.ExperienceResponse;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 

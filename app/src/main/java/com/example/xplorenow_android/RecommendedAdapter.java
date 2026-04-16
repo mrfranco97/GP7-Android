@@ -7,6 +7,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.example.xplorenow_android.data.model.Experience;
 import com.example.xplorenow_android.databinding.ItemRecommendedExperienceBinding;
 
 import java.util.ArrayList;
