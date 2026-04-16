@@ -11,4 +11,7 @@ public interface ExperienceApi {
             @Query("limit") int limit,
             @Query("category") String category
     );
+
+    @GET("api/experiences/recommended")
+    Call<ExperienceResponse> getRecommendedExperiences();
 }
