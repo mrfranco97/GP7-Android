@@ -1,4 +1,4 @@
-package com.example.xplorenow_android;
+package com.example.xplorenow_android.ui.profile;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -12,6 +12,10 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
 
+import com.example.xplorenow_android.R;
+import com.example.xplorenow_android.ui.user.UserPreferences;
+import com.example.xplorenow_android.data.model.Interest;
+import com.example.xplorenow_android.data.model.User;
 import com.example.xplorenow_android.databinding.FragmentProfileBinding;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.snackbar.Snackbar;

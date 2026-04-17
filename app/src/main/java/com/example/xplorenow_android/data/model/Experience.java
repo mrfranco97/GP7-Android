@@ -1,4 +1,4 @@
-package com.example.xplorenow_android;
+package com.example.xplorenow_android.data.model;
 
 import com.google.gson.annotations.SerializedName;
 

@@ -1,4 +1,4 @@
-package com.example.xplorenow_android;
+package com.example.xplorenow_android.ui.experience;
 
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
+import com.example.xplorenow_android.data.model.Experience;
 import com.example.xplorenow_android.databinding.ItemExperienceBinding;
 
 import java.util.Locale;

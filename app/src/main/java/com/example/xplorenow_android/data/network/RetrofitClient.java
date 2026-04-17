@@ -1,4 +1,4 @@
-package com.example.xplorenow_android;
+package com.example.xplorenow_android.data.network;
 
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;

@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/ExperienceListFragment"
-        android:name="com.example.xplorenow_android.ExperienceListFragment"
+        android:name="com.example.xplorenow_android.ui.experience.ExperienceListFragment"
         android:label="@string/first_fragment_label"
         tools:layout="@layout/fragment_experience_list">
         <action
@@ -17,7 +17,7 @@
 
     <fragment
         android:id="@+id/ProfileFragment"
-        android:name="com.example.xplorenow_android.ProfileFragment"
+        android:name="com.example.xplorenow_android.ui.profile.ProfileFragment"
         android:label="Profile"
         tools:layout="@layout/fragment_profile" />
 </navigation>

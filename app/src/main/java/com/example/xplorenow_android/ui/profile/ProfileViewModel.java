@@ -1,8 +1,15 @@
-package com.example.xplorenow_android;
+package com.example.xplorenow_android.ui.profile;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
+
+import com.example.xplorenow_android.ui.user.UserPreferences;
+import com.example.xplorenow_android.data.model.Interest;
+import com.example.xplorenow_android.data.model.User;
+import com.example.xplorenow_android.data.network.AuthApi;
+import com.example.xplorenow_android.data.network.CatalogApi;
+import com.example.xplorenow_android.data.network.RetrofitClient;
 
 import java.util.List;
 

@@ -1,4 +1,6 @@
-package com.example.xplorenow_android;
+package com.example.xplorenow_android.data.network;
+
+import com.example.xplorenow_android.ui.experience.ExperienceResponse;
 
 import retrofit2.Call;
 import retrofit2.http.GET;
