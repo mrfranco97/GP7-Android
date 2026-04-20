@@ -11,35 +11,61 @@ import androidx.paging.PagingData;
 import androidx.paging.PagingLiveData;
 
 import com.example.xplorenow_android.data.model.Experience;
+import com.example.xplorenow_android.data.network.CatalogApi;
+import com.example.xplorenow_android.data.network.Category;
+import com.example.xplorenow_android.data.network.CategoryResponse;
 import com.example.xplorenow_android.data.network.ExperienceApi;
-import com.example.xplorenow_android.data.network.RetrofitClient;
+
 import java.util.List;
 
+import javax.inject.Inject;
+
+import dagger.hilt.android.lifecycle.HiltViewModel;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+@HiltViewModel
 public class ExperienceViewModel extends ViewModel {
-    private final MutableLiveData<String> categoryLiveData = new MutableLiveData<>("All");
+    private final MutableLiveData<ExperienceFilters> filtersLiveData = new MutableLiveData<>(new ExperienceFilters());
     private final LiveData<PagingData<Experience>> pagingDataLiveData;
     private final MutableLiveData<List<Experience>> recommendedLiveData = new MutableLiveData<>();
+    private final MutableLiveData<List<Category>> categoriesCatalogLiveData = new MutableLiveData<>();
     private final ExperienceApi api;
+    private final CatalogApi catalogApi;
 
-    public ExperienceViewModel() {
-        this.api = RetrofitClient.getExperienceApi();
+    @Inject
+    public ExperienceViewModel(ExperienceApi api, CatalogApi catalogApi) {
+        this.api = api;
+        this.catalogApi = catalogApi;
         
-        LiveData<PagingData<Experience>> source = Transformations.switchMap(categoryLiveData, category -> {
+        LiveData<PagingData<Experience>> source = Transformations.switchMap(filtersLiveData, filters -> {
             Pager<Integer, Experience> pager = new Pager<>(
                     new PagingConfig(10, 5, false),
-                    () -> new ExperiencePagingSource(api, category)
+                    () -> new ExperiencePagingSource(api, filters)
             );
             return PagingLiveData.getLiveData(pager);
         });
 
         pagingDataLiveData = PagingLiveData.cachedIn(source, ViewModelKt.getViewModelScope(this));
 
-        // Disparamos la carga inicial de recomendaciones
         fetchRecommendations();
+        fetchCategoriesCatalog();
+    }
+
+    private void fetchCategoriesCatalog() {
+        catalogApi.getCategories().enqueue(new Callback<CategoryResponse>() {
+            @Override
+            public void onResponse(Call<CategoryResponse> call, Response<CategoryResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    categoriesCatalogLiveData.setValue(response.body().getItems());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<CategoryResponse> call, Throwable t) {
+            }
+        });
     }
 
     public void fetchRecommendations() {
@@ -65,9 +91,34 @@ public class ExperienceViewModel extends ViewModel {
         return recommendedLiveData;
     }
 
+    public LiveData<List<Category>> getCategoriesCatalogLiveData() {
+        return categoriesCatalogLiveData;
+    }
+
     public void setCategory(String category) {
-        if (!category.equals(categoryLiveData.getValue())) {
-            categoryLiveData.setValue(category);
+        ExperienceFilters current = filtersLiveData.getValue();
+        if (current != null) {
+            ExperienceFilters next = new ExperienceFilters();
+            next.setDestination(current.getDestination());
+            next.setDate(current.getDate());
+            next.setMinPrice(current.getMinPrice());
+            next.setMaxPrice(current.getMaxPrice());
+            next.setCategory(category);
+            filtersLiveData.setValue(next);
         }
+    }
+
+    public void applyFilters(String destination, String category, String date, Integer minPrice, Integer maxPrice) {
+        ExperienceFilters next = new ExperienceFilters();
+        next.setCategory(category);
+        next.setDestination(destination);
+        next.setDate(date);
+        next.setMinPrice(minPrice);
+        next.setMaxPrice(maxPrice);
+        filtersLiveData.setValue(next);
+    }
+    
+    public ExperienceFilters getFilters() {
+        return filtersLiveData.getValue();
     }
 }

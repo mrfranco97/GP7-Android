@@ -4,18 +4,20 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
+import androidx.paging.LoadState;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.xplorenow_android.R;
-import com.example.xplorenow_android.RecommendedAdapter;
 import com.example.xplorenow_android.databinding.FragmentExperienceListBinding;
 
+import dagger.hilt.android.AndroidEntryPoint;
+
+@AndroidEntryPoint
 public class ExperienceListFragment extends Fragment {
 
     private FragmentExperienceListBinding binding;
@@ -40,13 +42,28 @@ public class ExperienceListFragment extends Fragment {
         setupViewModel();
         setupFilters();
         setupProfileNavigation();
+    }
 
-        viewModel.fetchRecommendations();
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (viewModel != null) {
+            viewModel.fetchRecommendations();
+        }
     }
 
     private void setupRecyclerView() {
         adapter = new ExperienceAdapter();
         binding.recyclerExperiences.setAdapter(adapter);
+
+        adapter.addLoadStateListener(loadStates -> {
+            boolean isEmpty = loadStates.getRefresh() instanceof LoadState.NotLoading 
+                    && adapter.getItemCount() == 0;
+            
+            binding.layoutNoResults.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
+            binding.recyclerExperiences.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
+            return null;
+        });
     }
 
     private void setupRecommendedCarousel() {
@@ -56,7 +73,7 @@ public class ExperienceListFragment extends Fragment {
     }
 
     private void setupViewModel() {
-        viewModel = new ViewModelProvider(this).get(ExperienceViewModel.class);
+        viewModel = new ViewModelProvider(requireActivity()).get(ExperienceViewModel.class);
         
         viewModel.getPagingDataLiveData().observe(getViewLifecycleOwner(), pagingData -> {
             adapter.submitData(getViewLifecycleOwner().getLifecycle(), pagingData);
@@ -73,19 +90,10 @@ public class ExperienceListFragment extends Fragment {
     }
 
     private void setupFilters() {
-        View.OnClickListener filterListener = v -> {
-            if (v instanceof Button) {
-                String category = ((Button) v).getText().toString();
-                viewModel.setCategory(category);
-                binding.recyclerExperiences.scrollToPosition(0);
-            }
-        };
-
-        binding.btnFilterAll.setOnClickListener(filterListener);
-        binding.btnFilterNature.setOnClickListener(filterListener);
-        binding.btnFilterCulture.setOnClickListener(filterListener);
-        binding.btnFilterGastronomy.setOnClickListener(filterListener);
-        binding.btnFilterAdventure.setOnClickListener(filterListener);
+        binding.btnShowFilters.setOnClickListener(v -> {
+            FilterBottomSheetFragment bottomSheet = new FilterBottomSheetFragment();
+            bottomSheet.show(getChildFragmentManager(), bottomSheet.getTag());
+        });
     }
 
     private void setupProfileNavigation() {
