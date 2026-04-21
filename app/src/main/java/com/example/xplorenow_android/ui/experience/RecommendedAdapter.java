@@ -15,7 +15,16 @@ import java.util.List;
 
 public class RecommendedAdapter extends RecyclerView.Adapter<RecommendedAdapter.RecommendedViewHolder> {
 
+    public interface OnRecommendedClickListener {
+        void onExperienceClick(Experience experience);
+    }
+
     private final List<Experience> items = new ArrayList<>();
+    private final OnRecommendedClickListener listener;
+
+    public RecommendedAdapter(OnRecommendedClickListener listener) {
+        this.listener = listener;
+    }
 
     public void setItems(List<Experience> newItems) {
         items.clear();
@@ -36,13 +45,7 @@ public class RecommendedAdapter extends RecyclerView.Adapter<RecommendedAdapter.
     @Override
     public void onBindViewHolder(@NonNull RecommendedViewHolder holder, int position) {
         Experience item = items.get(position);
-        holder.binding.textRecommendedName.setText(item.getName());
-        holder.binding.textRecommendedDestination.setText(item.getDestination());
-        
-        Glide.with(holder.binding.imageRecommended.getContext())
-                .load(item.getImageUrl())
-                .placeholder(android.R.drawable.ic_menu_gallery)
-                .into(holder.binding.imageRecommended);
+        holder.bind(item, listener);
     }
 
     @Override
@@ -56,6 +59,22 @@ public class RecommendedAdapter extends RecyclerView.Adapter<RecommendedAdapter.
         RecommendedViewHolder(ItemRecommendedExperienceBinding binding) {
             super(binding.getRoot());
             this.binding = binding;
+        }
+
+        void bind(Experience item, OnRecommendedClickListener listener) {
+            binding.textRecommendedName.setText(item.getName());
+            binding.textRecommendedDestination.setText(item.getDestination());
+            
+            Glide.with(binding.imageRecommended.getContext())
+                    .load(item.getImageUrl())
+                    .placeholder(android.R.drawable.ic_menu_gallery)
+                    .into(binding.imageRecommended);
+
+            itemView.setOnClickListener(v -> {
+                if (listener != null) {
+                    listener.onExperienceClick(item);
+                }
+            });
         }
     }
 }

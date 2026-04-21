@@ -13,6 +13,7 @@ import androidx.paging.LoadState;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.xplorenow_android.R;
+import com.example.xplorenow_android.data.model.Experience;
 import com.example.xplorenow_android.databinding.FragmentExperienceListBinding;
 
 import dagger.hilt.android.AndroidEntryPoint;
@@ -53,7 +54,7 @@ public class ExperienceListFragment extends Fragment {
     }
 
     private void setupRecyclerView() {
-        adapter = new ExperienceAdapter();
+        adapter = new ExperienceAdapter(this::navigateToDetail);
         binding.recyclerExperiences.setAdapter(adapter);
 
         adapter.addLoadStateListener(loadStates -> {
@@ -67,9 +68,16 @@ public class ExperienceListFragment extends Fragment {
     }
 
     private void setupRecommendedCarousel() {
-        recommendedAdapter = new RecommendedAdapter();
+        recommendedAdapter = new RecommendedAdapter(this::navigateToDetail);
         binding.recyclerRecommended.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
         binding.recyclerRecommended.setAdapter(recommendedAdapter);
+    }
+
+    private void navigateToDetail(Experience experience) {
+        Bundle args = new Bundle();
+        args.putInt("experienceId", experience.getId());
+        Navigation.findNavController(requireView()).navigate(
+                R.id.action_ExperienceListFragment_to_ExperienceDetailFragment, args);
     }
 
     private void setupViewModel() {
