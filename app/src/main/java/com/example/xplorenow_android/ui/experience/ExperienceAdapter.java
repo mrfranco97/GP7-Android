@@ -19,8 +19,15 @@ import java.util.Locale;
 
 public class ExperienceAdapter extends PagingDataAdapter<Experience, ExperienceAdapter.ExperienceViewHolder> {
 
-    public ExperienceAdapter() {
+    public interface OnExperienceClickListener {
+        void onExperienceClick(Experience experience);
+    }
+
+    private final OnExperienceClickListener listener;
+
+    public ExperienceAdapter(OnExperienceClickListener listener) {
         super(DIFF_CALLBACK);
+        this.listener = listener;
     }
 
     @NonNull
@@ -35,7 +42,7 @@ public class ExperienceAdapter extends PagingDataAdapter<Experience, ExperienceA
     public void onBindViewHolder(@NonNull ExperienceViewHolder holder, int position) {
         Experience item = getItem(position);
         if (item != null) {
-            holder.bind(item);
+            holder.bind(item, listener);
         }
     }
 
@@ -47,7 +54,7 @@ public class ExperienceAdapter extends PagingDataAdapter<Experience, ExperienceA
             this.binding = binding;
         }
 
-        public void bind(Experience item) {
+        public void bind(Experience item, OnExperienceClickListener listener) {
             binding.textName.setText(item.getName());
             binding.textDestination.setText(item.getDestination());
             binding.textCategory.setText(item.getCategory());
@@ -59,6 +66,12 @@ public class ExperienceAdapter extends PagingDataAdapter<Experience, ExperienceA
                     .transition(DrawableTransitionOptions.withCrossFade())
                     .placeholder(new ColorDrawable(Color.parseColor("#F0F2F5")))
                     .into(binding.imageActivity);
+
+            itemView.setOnClickListener(v -> {
+                if (listener != null) {
+                    listener.onExperienceClick(item);
+                }
+            });
         }
     }
 

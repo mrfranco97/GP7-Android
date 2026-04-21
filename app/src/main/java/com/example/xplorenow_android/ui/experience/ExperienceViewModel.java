@@ -12,9 +12,9 @@ import androidx.paging.PagingLiveData;
 
 import com.example.xplorenow_android.data.model.Experience;
 import com.example.xplorenow_android.data.network.CatalogApi;
-import com.example.xplorenow_android.data.network.Category;
 import com.example.xplorenow_android.data.network.CategoryResponse;
 import com.example.xplorenow_android.data.network.ExperienceApi;
+import com.example.xplorenow_android.data.network.ExperienceResponse;
 
 import java.util.List;
 
@@ -30,7 +30,11 @@ public class ExperienceViewModel extends ViewModel {
     private final MutableLiveData<ExperienceFilters> filtersLiveData = new MutableLiveData<>(new ExperienceFilters());
     private final LiveData<PagingData<Experience>> pagingDataLiveData;
     private final MutableLiveData<List<Experience>> recommendedLiveData = new MutableLiveData<>();
-    private final MutableLiveData<List<Category>> categoriesCatalogLiveData = new MutableLiveData<>();
+    private final MutableLiveData<List<com.example.xplorenow_android.data.network.Category>> categoriesCatalogLiveData = new MutableLiveData<>();
+    private final MutableLiveData<Experience> experienceDetailLiveData = new MutableLiveData<>();
+    private final MutableLiveData<Boolean> detailLoadingLiveData = new MutableLiveData<>(false);
+    private final MutableLiveData<String> detailErrorLiveData = new MutableLiveData<>();
+    
     private final ExperienceApi api;
     private final CatalogApi catalogApi;
 
@@ -83,6 +87,27 @@ public class ExperienceViewModel extends ViewModel {
         });
     }
 
+    public void fetchExperienceDetail(int id) {
+        detailLoadingLiveData.setValue(true);
+        api.getExperienceDetail(String.valueOf(id)).enqueue(new Callback<Experience>() {
+            @Override
+            public void onResponse(Call<Experience> call, Response<Experience> response) {
+                detailLoadingLiveData.setValue(false);
+                if (response.isSuccessful() && response.body() != null) {
+                    experienceDetailLiveData.setValue(response.body());
+                } else {
+                    detailErrorLiveData.setValue("Error al cargar el detalle");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Experience> call, Throwable t) {
+                detailLoadingLiveData.setValue(false);
+                detailErrorLiveData.setValue(t.getMessage());
+            }
+        });
+    }
+
     public LiveData<PagingData<Experience>> getPagingDataLiveData() {
         return pagingDataLiveData;
     }
@@ -91,8 +116,20 @@ public class ExperienceViewModel extends ViewModel {
         return recommendedLiveData;
     }
 
-    public LiveData<List<Category>> getCategoriesCatalogLiveData() {
+    public LiveData<List<com.example.xplorenow_android.data.network.Category>> getCategoriesCatalogLiveData() {
         return categoriesCatalogLiveData;
+    }
+
+    public LiveData<Experience> getExperienceDetailLiveData() {
+        return experienceDetailLiveData;
+    }
+
+    public LiveData<Boolean> getDetailLoadingLiveData() {
+        return detailLoadingLiveData;
+    }
+
+    public LiveData<String> getDetailErrorLiveData() {
+        return detailErrorLiveData;
     }
 
     public void setCategory(String category) {

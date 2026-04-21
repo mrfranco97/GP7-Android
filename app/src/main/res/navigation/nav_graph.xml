@@ -13,6 +13,9 @@
         <action
             android:id="@+id/action_ExperienceListFragment_to_ProfileFragment"
             app:destination="@id/ProfileFragment" />
+        <action
+            android:id="@+id/action_ExperienceListFragment_to_ExperienceDetailFragment"
+            app:destination="@id/ExperienceDetailFragment" />
     </fragment>
 
     <fragment
@@ -20,4 +23,14 @@
         android:name="com.example.xplorenow_android.ui.profile.ProfileFragment"
         android:label="Profile"
         tools:layout="@layout/fragment_profile" />
+
+    <fragment
+        android:id="@+id/ExperienceDetailFragment"
+        android:name="com.example.xplorenow_android.ui.experience.ExperienceDetailFragment"
+        android:label="ExperienceDetail"
+        tools:layout="@layout/fragment_experience_detail">
+        <argument
+            android:name="experienceId"
+            app:argType="integer" />
+    </fragment>
 </navigation>
