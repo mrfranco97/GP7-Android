@@ -30,6 +30,37 @@
     <string name="booking_available_spots_format">%1$d cupos disponibles</string>
     <string name="booking_slot_chip_format">%1$s (%2$d cupos)</string>
 
+    <!-- Auth -->
+    <string name="auth_subtitle">Descubrí experiencias únicas</string>
+    <string name="auth_divider">— o —</string>
+    <string name="btn_continue_otp">Continuar con email</string>
+    <string name="btn_login">Iniciar sesión</string>
+    <string name="btn_login_with_code">Ingresar con código de un solo uso</string>
+    <string name="btn_create_account">¿No tenés cuenta? Registrate</string>
+    <string name="label_password">Contraseña</string>
+    <string name="label_confirm_password">Confirmar contraseña</string>
+
+    <!-- OTP -->
+    <string name="otp_title">Ingresá con código</string>
+    <string name="otp_email_subtitle">Ingresá tu correo y te enviamos un código de acceso</string>
+    <string name="otp_subtitle">Enviamos un código de 6 dígitos a %1$s</string>
+    <string name="label_otp_code">Código de 6 dígitos</string>
+    <string name="btn_send_code">Enviar código</string>
+    <string name="btn_verify">Verificar</string>
+    <string name="btn_resend_code">¿No recibiste el código? Reenviar</string>
+
+    <!-- Register -->
+    <string name="register_title">Crear cuenta</string>
+    <string name="register_subtitle">Completá tus datos para comenzar</string>
+    <string name="btn_register">Registrarse</string>
+
+    <!-- Errores auth -->
+    <string name="error_required_email">El correo es obligatorio</string>
+    <string name="error_required_password">La contraseña es obligatoria</string>
+    <string name="error_required_name">El nombre es obligatorio</string>
+    <string name="error_invalid_otp">El código debe tener exactamente 6 dígitos</string>
+    <string name="error_passwords_dont_match">Las contraseñas no coinciden</string>
+
     <string name="previous">Volver</string>
     <string name="lorem_ipsum">Los detalles de la experiencia se mostrarán aquí.</string>
 </resources>
