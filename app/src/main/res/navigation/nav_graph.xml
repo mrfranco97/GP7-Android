@@ -16,13 +16,20 @@
         <action
             android:id="@+id/action_ExperienceListFragment_to_ExperienceDetailFragment"
             app:destination="@id/ExperienceDetailFragment" />
+        <action
+            android:id="@+id/action_ExperienceListFragment_to_MyBookingsFragment"
+            app:destination="@id/MyBookingsFragment" />
     </fragment>
 
     <fragment
         android:id="@+id/ProfileFragment"
         android:name="com.example.xplorenow_android.ui.profile.ProfileFragment"
         android:label="Profile"
-        tools:layout="@layout/fragment_profile" />
+        tools:layout="@layout/fragment_profile">
+        <action
+            android:id="@+id/action_ProfileFragment_to_MyBookingsFragment"
+            app:destination="@id/MyBookingsFragment" />
+    </fragment>
 
     <fragment
         android:id="@+id/ExperienceDetailFragment"
@@ -33,4 +40,10 @@
             android:name="experienceId"
             app:argType="integer" />
     </fragment>
+
+    <fragment
+        android:id="@+id/MyBookingsFragment"
+        android:name="com.example.xplorenow_android.ui.experience.MyBookingsFragment"
+        android:label="My Bookings"
+        tools:layout="@layout/fragment_my_bookings" />
 </navigation>

@@ -106,6 +106,17 @@ public class ProfileFragment extends Fragment {
     }
 
     private void setupListeners() {
+        binding.btnBack.setOnClickListener(v -> Navigation.findNavController(v).navigateUp());
+
+        binding.btnMyBookings.setOnClickListener(v -> {
+            Navigation.findNavController(v).navigate(R.id.action_ProfileFragment_to_MyBookingsFragment);
+        });
+
+        binding.btnLogout.setOnClickListener(v -> {
+            Toast.makeText(getContext(), "Sesión cerrada", Toast.LENGTH_SHORT).show();
+            Navigation.findNavController(v).navigateUp();
+        });
+
         binding.btnSaveProfile.setOnClickListener(v -> {
             String name = binding.editName.getText().toString();
             String email = binding.editEmail.getText().toString();
