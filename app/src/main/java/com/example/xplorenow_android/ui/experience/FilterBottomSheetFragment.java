@@ -18,6 +18,9 @@ import com.google.android.material.chip.Chip;
 import java.util.Calendar;
 import java.util.Locale;
 
+import dagger.hilt.android.AndroidEntryPoint;
+
+@AndroidEntryPoint
 public class FilterBottomSheetFragment extends BottomSheetDialogFragment {
 
     private LayoutFilterBottomSheetBinding binding;

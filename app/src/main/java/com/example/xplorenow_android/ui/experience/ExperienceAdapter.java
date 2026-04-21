@@ -60,6 +60,7 @@ public class ExperienceAdapter extends PagingDataAdapter<Experience, ExperienceA
             binding.textCategory.setText(item.getCategory());
             binding.textDuration.setText(item.getDuration());
             binding.textPrice.setText(String.format(Locale.getDefault(), "$%.0f", item.getPrice()));
+            binding.textSpots.setText(String.format(Locale.getDefault(), "%d cupos disponibles", item.getAvailableSpots()));
 
             Glide.with(binding.imageActivity.getContext())
                     .load(item.getImageUrl())
@@ -86,7 +87,8 @@ public class ExperienceAdapter extends PagingDataAdapter<Experience, ExperienceA
                 public boolean areContentsTheSame(@NonNull Experience oldItem, @NonNull Experience newItem) {
                     return oldItem.getName().equals(newItem.getName()) &&
                             oldItem.getDestination().equals(newItem.getDestination()) &&
-                            oldItem.getPrice() == newItem.getPrice();
+                            oldItem.getPrice() == newItem.getPrice() &&
+                            oldItem.getAvailableSpots() == newItem.getAvailableSpots();
                 }
             };
 }

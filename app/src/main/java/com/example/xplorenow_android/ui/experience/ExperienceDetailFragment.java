@@ -26,6 +26,7 @@ public class ExperienceDetailFragment extends Fragment {
 
     private FragmentExperienceDetailBinding binding;
     private ExperienceViewModel viewModel;
+    private int experienceId;
 
     @Nullable
     @Override
@@ -39,12 +40,12 @@ public class ExperienceDetailFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         viewModel = new ViewModelProvider(requireActivity()).get(ExperienceViewModel.class);
 
-        int experienceId = 0;
         if (getArguments() != null) {
             experienceId = getArguments().getInt("experienceId");
         }
 
         setupToolbar();
+        setupBookingButton();
         observeViewModel();
         
         if (experienceId != 0) {
@@ -54,6 +55,13 @@ public class ExperienceDetailFragment extends Fragment {
 
     private void setupToolbar() {
         binding.toolbar.setNavigationOnClickListener(v -> Navigation.findNavController(v).navigateUp());
+    }
+
+    private void setupBookingButton() {
+        binding.btnBookNow.setOnClickListener(v -> {
+            BookingBottomSheetFragment bookingSheet = BookingBottomSheetFragment.newInstance(experienceId);
+            bookingSheet.show(getChildFragmentManager(), bookingSheet.getTag());
+        });
     }
 
     private void observeViewModel() {
