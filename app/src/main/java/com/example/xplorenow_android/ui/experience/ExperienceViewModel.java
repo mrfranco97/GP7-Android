@@ -10,14 +10,17 @@ import androidx.paging.PagingConfig;
 import androidx.paging.PagingData;
 import androidx.paging.PagingLiveData;
 
+import com.example.xplorenow_android.data.model.Booking;
 import com.example.xplorenow_android.data.network.AvailabilityResponse;
 import com.example.xplorenow_android.data.model.BookingRequest;
 import com.example.xplorenow_android.data.network.BookingResponse;
 import com.example.xplorenow_android.data.model.Experience;
+import com.example.xplorenow_android.data.network.BookingApi;
 import com.example.xplorenow_android.data.network.CatalogApi;
 import com.example.xplorenow_android.data.network.CategoryResponse;
 import com.example.xplorenow_android.data.network.ExperienceApi;
 import com.example.xplorenow_android.data.network.ExperienceResponse;
+import com.example.xplorenow_android.data.network.MyBookingsResponse;
 
 import java.util.List;
 
@@ -43,12 +46,15 @@ public class ExperienceViewModel extends ViewModel {
     private final MutableLiveData<BookingResponse> bookingResultLiveData = new MutableLiveData<>();
     private final MutableLiveData<String> bookingErrorLiveData = new MutableLiveData<>();
 
+    private final MutableLiveData<List<Booking>> myBookingsLiveData = new MutableLiveData<>();
+    private final MutableLiveData<Boolean> myBookingsLoadingLiveData = new MutableLiveData<>(false);
+
     private final ExperienceApi experienceApi;
     private final CatalogApi catalogApi;
-    private final com.example.xplorenow_android.data.network.BookingApi bookingApi;
+    private final BookingApi bookingApi;
 
     @Inject
-    public ExperienceViewModel(ExperienceApi experienceApi, CatalogApi catalogApi, com.example.xplorenow_android.data.network.BookingApi bookingApi) {
+    public ExperienceViewModel(ExperienceApi experienceApi, CatalogApi catalogApi, BookingApi bookingApi) {
         this.experienceApi = experienceApi;
         this.catalogApi = catalogApi;
         this.bookingApi = bookingApi;
@@ -147,6 +153,23 @@ public class ExperienceViewModel extends ViewModel {
         });
     }
 
+    public void fetchMyBookings() {
+        myBookingsLoadingLiveData.setValue(true);
+        bookingApi.getMyBookings().enqueue(new Callback<MyBookingsResponse>() {
+            @Override
+            public void onResponse(Call<MyBookingsResponse> call, Response<MyBookingsResponse> response) {
+                myBookingsLoadingLiveData.setValue(false);
+                if (response.isSuccessful() && response.body() != null) {
+                    myBookingsLiveData.setValue(response.body().getItems());
+                }
+            }
+            @Override
+            public void onFailure(Call<MyBookingsResponse> call, Throwable t) {
+                myBookingsLoadingLiveData.setValue(false);
+            }
+        });
+    }
+
     public void clearBookingResult() {
         bookingResultLiveData.setValue(null);
         bookingErrorLiveData.setValue(null);
@@ -161,6 +184,8 @@ public class ExperienceViewModel extends ViewModel {
     public LiveData<AvailabilityResponse> getAvailabilityLiveData() { return availabilityLiveData; }
     public LiveData<BookingResponse> getBookingResultLiveData() { return bookingResultLiveData; }
     public LiveData<String> getBookingErrorLiveData() { return bookingErrorLiveData; }
+    public LiveData<List<Booking>> getMyBookingsLiveData() { return myBookingsLiveData; }
+    public LiveData<Boolean> getMyBookingsLoadingLiveData() { return myBookingsLoadingLiveData; }
 
     public void setCategory(String category) {
         ExperienceFilters current = filtersLiveData.getValue();

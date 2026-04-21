@@ -12,16 +12,40 @@
         android:layout_height="wrap_content"
         android:padding="24dp">
 
+        <ImageButton
+            android:id="@+id/btn_back"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/previous"
+            android:src="@drawable/ic_back"
+            app:layout_constraintBottom_toBottomOf="@id/text_profile_title"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@id/text_profile_title" />
+
         <TextView
             android:id="@+id/text_profile_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
             android:text="@string/profile_title"
             android:textColor="@color/text_main"
             android:textSize="32sp"
             android:textStyle="bold"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintStart_toEndOf="@id/btn_back"
             app:layout_constraintTop_toTopOf="parent" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_my_bookings"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Mis actividades"
+            android:textColor="@color/accent"
+            app:icon="@android:drawable/ic_menu_agenda"
+            app:layout_constraintBottom_toBottomOf="@id/text_profile_title"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/text_profile_title" />
 
         <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/image_profile"
@@ -116,6 +140,16 @@
             android:textStyle="bold"
             app:cornerRadius="12dp"
             app:layout_constraintTop_toBottomOf="@id/interests_chip_group" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_logout"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Cerrar sesión"
+            android:textColor="#D63031"
+            app:layout_constraintTop_toBottomOf="@id/btn_save_profile" />
 
         <ProgressBar
             android:id="@+id/progress_profile"

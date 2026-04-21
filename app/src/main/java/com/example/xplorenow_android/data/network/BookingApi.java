@@ -15,4 +15,7 @@ public interface BookingApi {
 
     @POST("api/bookings")
     Call<BookingResponse> createBooking(@Body BookingRequest request);
+
+    @GET("api/bookings/me")
+    Call<MyBookingsResponse> getMyBookings();
 }
