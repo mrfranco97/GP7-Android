@@ -11,7 +11,11 @@ public interface ExperienceApi {
     Call<ExperienceResponse> getExperiences(
             @Query("page") int page,
             @Query("limit") int limit,
-            @Query("category") String category
+            @Query("destination") String destination,
+            @Query("category") String category,
+            @Query("date") String date,
+            @Query("minPrice") Integer minPrice,
+            @Query("maxPrice") Integer maxPrice
     );
 
     @GET("api/experiences/recommended")

@@ -22,11 +22,11 @@ public class ExperiencePagingSource extends ListenableFuturePagingSource<Integer
 
     private static final String TAG = "ExperiencePagingSource";
     private final ExperienceApi api;
-    private final String category;
+    private final ExperienceFilters filters;
 
-    public ExperiencePagingSource(ExperienceApi api, String category) {
+    public ExperiencePagingSource(ExperienceApi api, ExperienceFilters filters) {
         this.api = api;
-        this.category = category;
+        this.filters = filters;
     }
 
     @Nullable
@@ -42,33 +42,41 @@ public class ExperiencePagingSource extends ListenableFuturePagingSource<Integer
         int page = key != null ? key : 1;
         int limit = loadParams.getLoadSize();
 
-        Log.d(TAG, "Loading page: " + page + " with limit: " + limit + " category: " + category);
+        Log.d(TAG, "Loading page: " + page + " with limit: " + limit + " filters: " + filters);
 
         SettableFuture<LoadResult<Integer, Experience>> future = SettableFuture.create();
 
-        String categoryParam = (category == null || "All".equals(category)) ? null : category.toLowerCase();
+        String categoryParam = (filters.getCategory() == null || "All".equals(filters.getCategory())) 
+                ? null : filters.getCategory();
 
-        api.getExperiences(page, limit, categoryParam).enqueue(new Callback<ExperienceResponse>() {
+        api.getExperiences(
+                page,
+                limit,
+                filters.getDestination(),
+                categoryParam,
+                filters.getDate(),
+                filters.getMinPrice(),
+                filters.getMaxPrice()
+        ).enqueue(new Callback<ExperienceResponse>() {
             @Override
             public void onResponse(@NonNull Call<ExperienceResponse> call, @NonNull Response<ExperienceResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     List<Experience> items = response.body().getItems();
-                    Log.d(TAG, "Successfully loaded " + items.size() + " items");
+                    Log.d(TAG, "Loaded " + items.size() + " items");
                     future.set(new LoadResult.Page<>(
                             items,
                             page == 1 ? null : page - 1,
                             items.isEmpty() ? null : page + 1
                     ));
                 } else {
-                    String errorMsg = "API call failed with code: " + response.code();
-                    Log.e(TAG, errorMsg);
-                    future.set(new LoadResult.Error<>(new Exception(errorMsg)));
+                    Log.e(TAG, "API Error: " + response.code());
+                    future.set(new LoadResult.Error<>(new Exception("API call failed")));
                 }
             }
 
             @Override
             public void onFailure(@NonNull Call<ExperienceResponse> call, @NonNull Throwable t) {
-                Log.e(TAG, "Error loading paging data", t);
+                Log.e(TAG, "Network Error", t);
                 future.set(new LoadResult.Error<>(t));
             }
         });

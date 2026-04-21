@@ -9,14 +9,17 @@ import com.example.xplorenow_android.data.model.Interest;
 import com.example.xplorenow_android.data.model.User;
 import com.example.xplorenow_android.data.network.AuthApi;
 import com.example.xplorenow_android.data.network.CatalogApi;
-import com.example.xplorenow_android.data.network.RetrofitClient;
 
 import java.util.List;
 
+import javax.inject.Inject;
+
+import dagger.hilt.android.lifecycle.HiltViewModel;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+@HiltViewModel
 public class ProfileViewModel extends ViewModel {
     private final MutableLiveData<User> userLiveData = new MutableLiveData<>();
     private final MutableLiveData<List<Interest>> interestsCatalogLiveData = new MutableLiveData<>();
@@ -26,9 +29,10 @@ public class ProfileViewModel extends ViewModel {
     private final AuthApi authApi;
     private final CatalogApi catalogApi;
 
-    public ProfileViewModel() {
-        this.authApi = RetrofitClient.getAuthApi();
-        this.catalogApi = RetrofitClient.getCatalogApi();
+    @Inject
+    public ProfileViewModel(AuthApi authApi, CatalogApi catalogApi) {
+        this.authApi = authApi;
+        this.catalogApi = catalogApi;
     }
 
     public LiveData<User> getUserLiveData() { return userLiveData; }

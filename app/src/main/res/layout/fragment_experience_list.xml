@@ -56,8 +56,7 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:visibility="gone"
-            app:layout_scrollFlags="scroll"
-            tools:visibility="visible">
+            app:layout_scrollFlags="scroll">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -97,44 +96,13 @@
                 android:orientation="horizontal"
                 android:paddingHorizontal="16dp">
 
-                <Button
-                    android:id="@+id/btn_filter_all"
-                    style="@style/Widget.Material3.Button.TonalButton"
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_show_filters"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="8dp"
-                    android:text="@string/filter_all" />
-
-                <Button
-                    android:id="@+id/btn_filter_nature"
-                    style="@style/Widget.Material3.Button.TonalButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="8dp"
-                    android:text="@string/filter_nature" />
-
-                <Button
-                    android:id="@+id/btn_filter_culture"
-                    style="@style/Widget.Material3.Button.TonalButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="8dp"
-                    android:text="@string/filter_culture" />
-
-                <Button
-                    android:id="@+id/btn_filter_gastronomy"
-                    style="@style/Widget.Material3.Button.TonalButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="8dp"
-                    android:text="@string/filter_gastronomy" />
-
-                <Button
-                    android:id="@+id/btn_filter_adventure"
-                    style="@style/Widget.Material3.Button.TonalButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/filter_adventure" />
+                    android:text="Filtros"
+                    app:icon="@android:drawable/ic_menu_manage" />
             </LinearLayout>
         </HorizontalScrollView>
 
@@ -149,5 +117,45 @@
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         tools:listitem="@layout/item_experience" />
+
+    <!-- No results disclaimer banner - Ajustado para verse más arriba -->
+    <LinearLayout
+        android:id="@+id/layout_no_results"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="64dp"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="32dp"
+        android:visibility="gone"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        tools:visibility="visible">
+
+        <ImageView
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:alpha="0.5"
+            android:contentDescription="No se encontraron resultados"
+            android:src="@android:drawable/ic_menu_search"
+            app:tint="@color/text_secondary" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="No se encontraron resultados"
+            android:textColor="@color/text_main"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center"
+            android:text="Intenta ajustar tus filtros para encontrar lo que buscas."
+            android:textColor="@color/text_secondary"
+            android:textSize="14sp" />
+    </LinearLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
