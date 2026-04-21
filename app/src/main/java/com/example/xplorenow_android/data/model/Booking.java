@@ -20,6 +20,7 @@ public class Booking {
     @SerializedName("experience")
     private ExperienceSummary experience;
 
+    public Object getId() { return id; }
     public String getStatus() { return status; }
     public String getDate() { return date; }
     public String getTimeSlot() { return timeSlot; }

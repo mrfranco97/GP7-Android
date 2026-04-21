@@ -21,7 +21,6 @@
             android:layout_width="80dp"
             android:layout_height="80dp"
             android:scaleType="centerCrop"
-            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:shapeAppearanceOverlay="@style/RoundedImageView"
@@ -71,25 +70,40 @@
             tools:text="25 Abr 2026 • 10:00" />
 
         <TextView
+            android:id="@+id/text_booking_participants"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textColor="@color/text_secondary"
+            android:textSize="13sp"
+            app:layout_constraintStart_toStartOf="@id/text_booking_date_time"
+            app:layout_constraintTop_toBottomOf="@id/text_booking_date_time"
+            tools:text="3 personas" />
+
+        <TextView
             android:id="@+id/text_booking_price"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="@color/text_main"
             android:textSize="14sp"
             android:textStyle="bold"
-            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintBottom_toBottomOf="@id/btn_cancel_booking"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/btn_cancel_booking"
             tools:text="$54.000" />
 
-        <TextView
-            android:id="@+id/text_booking_participants"
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_cancel_booking"
+            style="@style/Widget.Material3.Button.TextButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@color/text_secondary"
+            android:layout_marginTop="8dp"
+            android:text="Cancelar"
+            android:textColor="#D63031"
             android:textSize="13sp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="@id/text_booking_date_time"
-            tools:text="3 personas" />
+            app:layout_constraintStart_toStartOf="@id/text_booking_participants"
+            app:layout_constraintTop_toBottomOf="@id/text_booking_participants"
+            tools:visibility="visible" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </com.google.android.material.card.MaterialCardView>
