@@ -10,6 +10,9 @@ import androidx.paging.PagingConfig;
 import androidx.paging.PagingData;
 import androidx.paging.PagingLiveData;
 
+import com.example.xplorenow_android.data.network.AvailabilityResponse;
+import com.example.xplorenow_android.data.model.BookingRequest;
+import com.example.xplorenow_android.data.network.BookingResponse;
 import com.example.xplorenow_android.data.model.Experience;
 import com.example.xplorenow_android.data.network.CatalogApi;
 import com.example.xplorenow_android.data.network.CategoryResponse;
@@ -31,22 +34,29 @@ public class ExperienceViewModel extends ViewModel {
     private final LiveData<PagingData<Experience>> pagingDataLiveData;
     private final MutableLiveData<List<Experience>> recommendedLiveData = new MutableLiveData<>();
     private final MutableLiveData<List<com.example.xplorenow_android.data.network.Category>> categoriesCatalogLiveData = new MutableLiveData<>();
+    
     private final MutableLiveData<Experience> experienceDetailLiveData = new MutableLiveData<>();
     private final MutableLiveData<Boolean> detailLoadingLiveData = new MutableLiveData<>(false);
     private final MutableLiveData<String> detailErrorLiveData = new MutableLiveData<>();
     
-    private final ExperienceApi api;
+    private final MutableLiveData<AvailabilityResponse> availabilityLiveData = new MutableLiveData<>();
+    private final MutableLiveData<BookingResponse> bookingResultLiveData = new MutableLiveData<>();
+    private final MutableLiveData<String> bookingErrorLiveData = new MutableLiveData<>();
+
+    private final ExperienceApi experienceApi;
     private final CatalogApi catalogApi;
+    private final com.example.xplorenow_android.data.network.BookingApi bookingApi;
 
     @Inject
-    public ExperienceViewModel(ExperienceApi api, CatalogApi catalogApi) {
-        this.api = api;
+    public ExperienceViewModel(ExperienceApi experienceApi, CatalogApi catalogApi, com.example.xplorenow_android.data.network.BookingApi bookingApi) {
+        this.experienceApi = experienceApi;
         this.catalogApi = catalogApi;
+        this.bookingApi = bookingApi;
         
         LiveData<PagingData<Experience>> source = Transformations.switchMap(filtersLiveData, filters -> {
             Pager<Integer, Experience> pager = new Pager<>(
                     new PagingConfig(10, 5, false),
-                    () -> new ExperiencePagingSource(api, filters)
+                    () -> new ExperiencePagingSource(experienceApi, filters)
             );
             return PagingLiveData.getLiveData(pager);
         });
@@ -65,31 +75,27 @@ public class ExperienceViewModel extends ViewModel {
                     categoriesCatalogLiveData.setValue(response.body().getItems());
                 }
             }
-
             @Override
-            public void onFailure(Call<CategoryResponse> call, Throwable t) {
-            }
+            public void onFailure(Call<CategoryResponse> call, Throwable t) {}
         });
     }
 
     public void fetchRecommendations() {
-        api.getRecommendedExperiences().enqueue(new Callback<ExperienceResponse>() {
+        experienceApi.getRecommendedExperiences().enqueue(new Callback<ExperienceResponse>() {
             @Override
             public void onResponse(Call<ExperienceResponse> call, Response<ExperienceResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     recommendedLiveData.setValue(response.body().getItems());
                 }
             }
-
             @Override
-            public void onFailure(Call<ExperienceResponse> call, Throwable t) {
-            }
+            public void onFailure(Call<ExperienceResponse> call, Throwable t) {}
         });
     }
 
     public void fetchExperienceDetail(int id) {
         detailLoadingLiveData.setValue(true);
-        api.getExperienceDetail(String.valueOf(id)).enqueue(new Callback<Experience>() {
+        experienceApi.getExperienceDetail(String.valueOf(id)).enqueue(new Callback<Experience>() {
             @Override
             public void onResponse(Call<Experience> call, Response<Experience> response) {
                 detailLoadingLiveData.setValue(false);
@@ -99,7 +105,6 @@ public class ExperienceViewModel extends ViewModel {
                     detailErrorLiveData.setValue("Error al cargar el detalle");
                 }
             }
-
             @Override
             public void onFailure(Call<Experience> call, Throwable t) {
                 detailLoadingLiveData.setValue(false);
@@ -108,29 +113,54 @@ public class ExperienceViewModel extends ViewModel {
         });
     }
 
-    public LiveData<PagingData<Experience>> getPagingDataLiveData() {
-        return pagingDataLiveData;
+    public void fetchAvailability(int experienceId, String date) {
+        bookingApi.getAvailability(String.valueOf(experienceId), date).enqueue(new Callback<AvailabilityResponse>() {
+            @Override
+            public void onResponse(Call<AvailabilityResponse> call, Response<AvailabilityResponse> response) {
+                if (response.isSuccessful()) {
+                    availabilityLiveData.setValue(response.body());
+                }
+            }
+            @Override
+            public void onFailure(Call<AvailabilityResponse> call, Throwable t) {}
+        });
     }
 
-    public LiveData<List<Experience>> getRecommendedLiveData() {
-        return recommendedLiveData;
+    public void createBooking(int experienceId, String date, String timeSlot, int participants) {
+        BookingRequest request = new BookingRequest(String.valueOf(experienceId), date, timeSlot, participants);
+        bookingApi.createBooking(request).enqueue(new Callback<BookingResponse>() {
+            @Override
+            public void onResponse(Call<BookingResponse> call, Response<BookingResponse> response) {
+                if (response.isSuccessful()) {
+                    bookingResultLiveData.setValue(response.body());
+                } else if (response.code() == 409) {
+                    bookingErrorLiveData.setValue("No hay cupos suficientes.");
+                    fetchAvailability(experienceId, date);
+                } else {
+                    bookingErrorLiveData.setValue("Error al procesar la reserva.");
+                }
+            }
+            @Override
+            public void onFailure(Call<BookingResponse> call, Throwable t) {
+                bookingErrorLiveData.setValue(t.getMessage());
+            }
+        });
     }
 
-    public LiveData<List<com.example.xplorenow_android.data.network.Category>> getCategoriesCatalogLiveData() {
-        return categoriesCatalogLiveData;
+    public void clearBookingResult() {
+        bookingResultLiveData.setValue(null);
+        bookingErrorLiveData.setValue(null);
     }
 
-    public LiveData<Experience> getExperienceDetailLiveData() {
-        return experienceDetailLiveData;
-    }
-
-    public LiveData<Boolean> getDetailLoadingLiveData() {
-        return detailLoadingLiveData;
-    }
-
-    public LiveData<String> getDetailErrorLiveData() {
-        return detailErrorLiveData;
-    }
+    public LiveData<PagingData<Experience>> getPagingDataLiveData() { return pagingDataLiveData; }
+    public LiveData<List<Experience>> getRecommendedLiveData() { return recommendedLiveData; }
+    public LiveData<List<com.example.xplorenow_android.data.network.Category>> getCategoriesCatalogLiveData() { return categoriesCatalogLiveData; }
+    public LiveData<Experience> getExperienceDetailLiveData() { return experienceDetailLiveData; }
+    public LiveData<Boolean> getDetailLoadingLiveData() { return detailLoadingLiveData; }
+    public LiveData<String> getDetailErrorLiveData() { return detailErrorLiveData; }
+    public LiveData<AvailabilityResponse> getAvailabilityLiveData() { return availabilityLiveData; }
+    public LiveData<BookingResponse> getBookingResultLiveData() { return bookingResultLiveData; }
+    public LiveData<String> getBookingErrorLiveData() { return bookingErrorLiveData; }
 
     public void setCategory(String category) {
         ExperienceFilters current = filtersLiveData.getValue();
@@ -155,7 +185,5 @@ public class ExperienceViewModel extends ViewModel {
         filtersLiveData.setValue(next);
     }
     
-    public ExperienceFilters getFilters() {
-        return filtersLiveData.getValue();
-    }
+    public ExperienceFilters getFilters() { return filtersLiveData.getValue(); }
 }

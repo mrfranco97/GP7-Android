@@ -19,6 +19,17 @@
     <string name="msg_save_success">¡Cambios guardados correctamente!</string>
     <string name="error_required_fields">El nombre y el correo son obligatorios</string>
 
+    <string name="booking_title">Reservar experiencia</string>
+    <string name="booking_select_date">Selecciona una fecha</string>
+    <string name="booking_btn_choose_date">Elegir fecha</string>
+    <string name="booking_slots_label">Horarios disponibles</string>
+    <string name="booking_participants_label">Cantidad de participantes</string>
+    <string name="booking_btn_confirm">Confirmar reserva</string>
+    <string name="booking_msg_success">¡Reserva confirmada!</string>
+    <string name="booking_error_no_spots">No hay cupos suficientes.</string>
+    <string name="booking_available_spots_format">%1$d cupos disponibles</string>
+    <string name="booking_slot_chip_format">%1$s (%2$d cupos)</string>
+
     <string name="previous">Volver</string>
     <string name="lorem_ipsum">Los detalles de la experiencia se mostrarán aquí.</string>
 </resources>

@@ -23,7 +23,6 @@ public class Experience {
     @SerializedName("image_url")
     private String imageUrl;
     
-    // Detail fields
     @SerializedName("description")
     private String description;
     @SerializedName("includes")
@@ -38,6 +37,8 @@ public class Experience {
     private String cancellationPolicy;
     @SerializedName("gallery")
     private List<String> gallery;
+    @SerializedName("available_date")
+    private String availableDate;
 
     public int getId() { return id; }
     public String getName() { return name; }
@@ -55,4 +56,5 @@ public class Experience {
     public String getLanguage() { return language; }
     public String getCancellationPolicy() { return cancellationPolicy; }
     public List<String> getGallery() { return gallery; }
+    public String getAvailableDate() { return availableDate; }
 }

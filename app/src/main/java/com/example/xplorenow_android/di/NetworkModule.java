@@ -1,6 +1,7 @@
 package com.example.xplorenow_android.di;
 
 import com.example.xplorenow_android.data.network.AuthApi;
+import com.example.xplorenow_android.data.network.BookingApi;
 import com.example.xplorenow_android.data.network.CatalogApi;
 import com.example.xplorenow_android.data.network.ExperienceApi;
 
@@ -44,5 +45,11 @@ public class NetworkModule {
     @Singleton
     public CatalogApi provideCatalogApi(Retrofit retrofit) {
         return retrofit.create(CatalogApi.class);
+    }
+
+    @Provides
+    @Singleton
+    public BookingApi provideBookingApi(Retrofit retrofit) {
+        return retrofit.create(BookingApi.class);
     }
 }
