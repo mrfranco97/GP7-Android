@@ -4,6 +4,7 @@ import com.example.xplorenow_android.data.model.BookingRequest;
 
 import retrofit2.Call;
 import retrofit2.http.Body;
+import retrofit2.http.DELETE;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
 import retrofit2.http.Path;
@@ -18,4 +19,7 @@ public interface BookingApi {
 
     @GET("api/bookings/me")
     Call<MyBookingsResponse> getMyBookings();
+
+    @DELETE("api/bookings/{id}")
+    Call<BookingCancellationResponse> cancelBooking(@Path("id") String id);
 }

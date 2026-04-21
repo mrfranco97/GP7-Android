@@ -13,6 +13,7 @@ import androidx.paging.PagingLiveData;
 import com.example.xplorenow_android.data.model.Booking;
 import com.example.xplorenow_android.data.network.AvailabilityResponse;
 import com.example.xplorenow_android.data.model.BookingRequest;
+import com.example.xplorenow_android.data.network.BookingCancellationResponse;
 import com.example.xplorenow_android.data.network.BookingResponse;
 import com.example.xplorenow_android.data.model.Experience;
 import com.example.xplorenow_android.data.network.BookingApi;
@@ -48,6 +49,7 @@ public class ExperienceViewModel extends ViewModel {
 
     private final MutableLiveData<List<Booking>> myBookingsLiveData = new MutableLiveData<>();
     private final MutableLiveData<Boolean> myBookingsLoadingLiveData = new MutableLiveData<>(false);
+    private final MutableLiveData<BookingCancellationResponse> cancellationResultLiveData = new MutableLiveData<>();
 
     private final ExperienceApi experienceApi;
     private final CatalogApi catalogApi;
@@ -170,9 +172,34 @@ public class ExperienceViewModel extends ViewModel {
         });
     }
 
+    public void cancelBooking(String bookingId) {
+        myBookingsLoadingLiveData.setValue(true);
+        bookingApi.cancelBooking(bookingId).enqueue(new Callback<BookingCancellationResponse>() {
+            @Override
+            public void onResponse(Call<BookingCancellationResponse> call, Response<BookingCancellationResponse> response) {
+                myBookingsLoadingLiveData.setValue(false);
+                if (response.isSuccessful()) {
+                    cancellationResultLiveData.setValue(response.body());
+                    fetchMyBookings();
+                } else {
+                    bookingErrorLiveData.setValue("Error al cancelar la reserva.");
+                }
+            }
+            @Override
+            public void onFailure(Call<BookingCancellationResponse> call, Throwable t) {
+                myBookingsLoadingLiveData.setValue(false);
+                bookingErrorLiveData.setValue(t.getMessage());
+            }
+        });
+    }
+
     public void clearBookingResult() {
         bookingResultLiveData.setValue(null);
         bookingErrorLiveData.setValue(null);
+    }
+
+    public void clearCancellationResult() {
+        cancellationResultLiveData.setValue(null);
     }
 
     public LiveData<PagingData<Experience>> getPagingDataLiveData() { return pagingDataLiveData; }
@@ -186,6 +213,7 @@ public class ExperienceViewModel extends ViewModel {
     public LiveData<String> getBookingErrorLiveData() { return bookingErrorLiveData; }
     public LiveData<List<Booking>> getMyBookingsLiveData() { return myBookingsLiveData; }
     public LiveData<Boolean> getMyBookingsLoadingLiveData() { return myBookingsLoadingLiveData; }
+    public LiveData<BookingCancellationResponse> getCancellationResultLiveData() { return cancellationResultLiveData; }
 
     public void setCategory(String category) {
         ExperienceFilters current = filtersLiveData.getValue();
