@@ -9,24 +9,32 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
 
 import com.bumptech.glide.Glide;
 import com.example.xplorenow_android.R;
 import com.example.xplorenow_android.data.model.Experience;
+import com.example.xplorenow_android.data.network.ExperienceApi;
 import com.example.xplorenow_android.databinding.FragmentExperienceDetailBinding;
 
 import java.util.Locale;
 
+import javax.inject.Inject;
+
 import dagger.hilt.android.AndroidEntryPoint;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 @AndroidEntryPoint
 public class ExperienceDetailFragment extends Fragment {
 
     private FragmentExperienceDetailBinding binding;
-    private ExperienceViewModel viewModel;
     private int experienceId;
+    private Experience currentExperience;
+
+    @Inject
+    ExperienceApi experienceApi;
 
     @Nullable
     @Override
@@ -38,7 +46,6 @@ public class ExperienceDetailFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        viewModel = new ViewModelProvider(requireActivity()).get(ExperienceViewModel.class);
 
         if (getArguments() != null) {
             experienceId = getArguments().getInt("experienceId");
@@ -46,10 +53,9 @@ public class ExperienceDetailFragment extends Fragment {
 
         setupToolbar();
         setupBookingButton();
-        observeViewModel();
         
         if (experienceId != 0) {
-            viewModel.fetchExperienceDetail(experienceId);
+            fetchExperienceDetail(experienceId);
         }
     }
 
@@ -59,21 +65,36 @@ public class ExperienceDetailFragment extends Fragment {
 
     private void setupBookingButton() {
         binding.btnBookNow.setOnClickListener(v -> {
-            BookingBottomSheetFragment bookingSheet = BookingBottomSheetFragment.newInstance(experienceId);
-            bookingSheet.show(getChildFragmentManager(), bookingSheet.getTag());
+            if (currentExperience != null) {
+                BookingBottomSheetFragment bookingSheet = BookingBottomSheetFragment.newInstance(
+                        experienceId, currentExperience.getAvailableDate());
+                bookingSheet.show(getChildFragmentManager(), bookingSheet.getTag());
+            }
         });
     }
 
-    private void observeViewModel() {
-        viewModel.getExperienceDetailLiveData().observe(getViewLifecycleOwner(), experience -> {
-            if (experience != null) {
-                bindExperienceData(experience);
+    private void fetchExperienceDetail(int id) {
+        binding.progressDetail.setVisibility(View.VISIBLE);
+        experienceApi.getExperienceDetail(String.valueOf(id)).enqueue(new Callback<Experience>() {
+            @Override
+            public void onResponse(Call<Experience> call, Response<Experience> response) {
+                if (isAdded()) {
+                    binding.progressDetail.setVisibility(View.GONE);
+                    if (response.isSuccessful() && response.body() != null) {
+                        currentExperience = response.body();
+                        bindExperienceData(currentExperience);
+                    } else {
+                        Toast.makeText(getContext(), "Error al cargar el detalle", Toast.LENGTH_SHORT).show();
+                    }
+                }
             }
-        });
 
-        viewModel.getDetailErrorLiveData().observe(getViewLifecycleOwner(), error -> {
-            if (error != null) {
-                Toast.makeText(getContext(), error, Toast.LENGTH_SHORT).show();
+            @Override
+            public void onFailure(Call<Experience> call, Throwable t) {
+                if (isAdded()) {
+                    binding.progressDetail.setVisibility(View.GONE);
+                    Toast.makeText(getContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }
