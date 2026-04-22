@@ -8,24 +8,31 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.example.xplorenow_android.data.model.BookingRequest;
 import com.example.xplorenow_android.data.model.Experience;
 import com.example.xplorenow_android.data.model.TimeSlot;
+import com.example.xplorenow_android.data.network.AvailabilityResponse;
+import com.example.xplorenow_android.data.network.BookingApi;
+import com.example.xplorenow_android.data.network.BookingResponse;
 import com.example.xplorenow_android.databinding.LayoutBookingBottomSheetBinding;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.android.material.chip.Chip;
 
 import java.util.List;
 
+import javax.inject.Inject;
+
 import dagger.hilt.android.AndroidEntryPoint;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 @AndroidEntryPoint
 public class BookingBottomSheetFragment extends BottomSheetDialogFragment {
 
     private LayoutBookingBottomSheetBinding binding;
-    private ExperienceViewModel viewModel;
     private int experienceId;
     private String selectedDate;
     private String selectedTimeSlot;
@@ -33,10 +40,14 @@ public class BookingBottomSheetFragment extends BottomSheetDialogFragment {
     private int maxAvailableSpots = 0;
     private DateGridAdapter dateAdapter;
 
-    public static BookingBottomSheetFragment newInstance(int experienceId) {
+    @Inject
+    BookingApi bookingApi;
+
+    public static BookingBottomSheetFragment newInstance(int experienceId, String availableDate) {
         BookingBottomSheetFragment fragment = new BookingBottomSheetFragment();
         Bundle args = new Bundle();
         args.putInt("experienceId", experienceId);
+        args.putString("availableDate", availableDate);
         fragment.setArguments(args);
         return fragment;
     }
@@ -51,41 +62,60 @@ public class BookingBottomSheetFragment extends BottomSheetDialogFragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        viewModel = new ViewModelProvider(requireActivity()).get(ExperienceViewModel.class);
         if (getArguments() != null) {
             experienceId = getArguments().getInt("experienceId");
+            selectedDate = getArguments().getString("availableDate");
         }
+
 
         setupDateGrid();
         setupListeners();
-        observeViewModel();
         
-        Experience exp = viewModel.getExperienceDetailLiveData().getValue();
-        if (exp != null && exp.getAvailableDate() != null) {
-            applyInitialDate(exp.getAvailableDate());
-        } else {
-            viewModel.getExperienceDetailLiveData().observe(getViewLifecycleOwner(), this::onExperienceLoaded);
-        }
+        dateAdapter.setStartDate(selectedDate);
+        fetchAvailability(experienceId, selectedDate);
     }
 
-    private void onExperienceLoaded(Experience exp) {
-        if (exp != null && exp.getAvailableDate() != null) {
-            applyInitialDate(exp.getAvailableDate());
-        }
+    private void fetchAvailability(int experienceId, String date) {
+        bookingApi.getAvailability(String.valueOf(experienceId), date).enqueue(new Callback<AvailabilityResponse>() {
+            @Override
+            public void onResponse(Call<AvailabilityResponse> call, Response<AvailabilityResponse> response) {
+                if (isAdded() && response.isSuccessful() && response.body() != null) {
+                    displayTimeSlots(response.body().getSlots());
+                }
+            }
+            @Override
+            public void onFailure(Call<AvailabilityResponse> call, Throwable t) {}
+        });
     }
 
-    private void applyInitialDate(String fullDate) {
-        String date = fullDate.split("T")[0];
-        selectedDate = date;
-        dateAdapter.setStartDate(date);
-        viewModel.fetchAvailability(experienceId, date);
+    private void createBooking(int experienceId, String date, String timeSlot, int participants) {
+        BookingRequest request = new BookingRequest(String.valueOf(experienceId), date, timeSlot, participants);
+        bookingApi.createBooking(request).enqueue(new Callback<BookingResponse>() {
+            @Override
+            public void onResponse(Call<BookingResponse> call, Response<BookingResponse> response) {
+                if (isAdded()) {
+                    if (response.isSuccessful()) {
+                        Toast.makeText(getContext(), "¡Reserva confirmada!", Toast.LENGTH_LONG).show();
+                        dismiss();
+                    } else {
+                        Toast.makeText(getContext(), "Error al procesar la reserva", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }
+            @Override
+            public void onFailure(Call<BookingResponse> call, Throwable t) {
+                if (isAdded()) {
+                    Toast.makeText(getContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
     }
 
     private void setupDateGrid() {
         dateAdapter = new DateGridAdapter(date -> {
             selectedDate = date;
             resetBookingSelection();
-            viewModel.fetchAvailability(experienceId, selectedDate);
+            fetchAvailability(experienceId, selectedDate);
         });
         binding.recyclerDates.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
         binding.recyclerDates.setAdapter(dateAdapter);
@@ -110,36 +140,7 @@ public class BookingBottomSheetFragment extends BottomSheetDialogFragment {
 
         binding.btnConfirmBooking.setOnClickListener(v -> {
             if (selectedDate != null && selectedTimeSlot != null) {
-                viewModel.createBooking(experienceId, selectedDate, selectedTimeSlot, participants);
-            }
-        });
-    }
-
-    private void observeViewModel() {
-        viewModel.getAvailabilityLiveData().observe(getViewLifecycleOwner(), response -> {
-            if (response != null && response.getExperienceId() == experienceId) {
-                displayTimeSlots(response.getSlots());
-            }
-        });
-
-        viewModel.getBookingResultLiveData().observe(getViewLifecycleOwner(), response -> {
-            if (response != null) {
-                if (response.getStatus() != null && response.getStatus().equals("confirmed")) {
-                    Toast.makeText(getContext(), "¡Reserva confirmada!", Toast.LENGTH_LONG).show();
-                    viewModel.fetchExperienceDetail(experienceId);
-                    viewModel.clearBookingResult();
-                    dismiss();
-                } else if (response.getMessage() != null) {
-                    Toast.makeText(getContext(), response.getMessage(), Toast.LENGTH_LONG).show();
-                    viewModel.clearBookingResult();
-                }
-            }
-        });
-
-        viewModel.getBookingErrorLiveData().observe(getViewLifecycleOwner(), error -> {
-            if (error != null) {
-                Toast.makeText(getContext(), error, Toast.LENGTH_LONG).show();
-                viewModel.clearBookingResult();
+                createBooking(experienceId, selectedDate, selectedTimeSlot, participants);
             }
         });
     }
