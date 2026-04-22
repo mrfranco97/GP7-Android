@@ -54,7 +54,17 @@ public class MyBookingsFragment extends Fragment {
     }
 
     private void setupRecyclerView() {
-        adapter = new MyBookingsAdapter(this::showCancelConfirmation);
+        adapter = new MyBookingsAdapter(new MyBookingsAdapter.OnBookingActionListener() {
+            @Override
+            public void onCancelClick(Booking booking) {
+                showCancelConfirmation(booking);
+            }
+
+            @Override
+            public void onRateClick(Booking booking) {
+                showRatingBottomSheet(booking);
+            }
+        });
         binding.recyclerMyBookings.setAdapter(adapter);
     }
 
@@ -104,6 +114,12 @@ public class MyBookingsFragment extends Fragment {
                     cancelBooking(String.valueOf(booking.getId()));
                 })
                 .show();
+    }
+
+    private void showRatingBottomSheet(Booking booking) {
+        RatingBottomSheetFragment fragment = RatingBottomSheetFragment.newInstance(String.valueOf(booking.getId()));
+        fragment.setOnRatingSubmittedListener(this::fetchMyBookings);
+        fragment.show(getChildFragmentManager(), "RatingBottomSheet");
     }
 
     private void cancelBooking(String bookingId) {
