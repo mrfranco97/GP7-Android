@@ -17,6 +17,14 @@ public class Booking {
     private int participants;
     @SerializedName("total_price")
     private double totalPrice;
+    @SerializedName("can_rate")
+    private boolean canRate;
+    @SerializedName("rating_available_at")
+    private String ratingAvailableAt;
+    @SerializedName("rating_window_closes_at")
+    private String ratingWindowClosesAt;
+    @SerializedName("rating")
+    private Rating rating;
     @SerializedName("experience")
     private ExperienceSummary experience;
 
@@ -26,6 +34,10 @@ public class Booking {
     public String getTimeSlot() { return timeSlot; }
     public int getParticipants() { return participants; }
     public double getTotalPrice() { return totalPrice; }
+    public boolean isCanRate() { return canRate; }
+    public String getRatingAvailableAt() { return ratingAvailableAt; }
+    public String getRatingWindowClosesAt() { return ratingWindowClosesAt; }
+    public Rating getRating() { return rating; }
     public ExperienceSummary getExperience() { return experience; }
 
     public static class ExperienceSummary {
@@ -37,9 +49,13 @@ public class Booking {
         private String destination;
         @SerializedName("image_url")
         private String imageUrl;
+        @SerializedName("guide_id")
+        private String guideId;
 
+        public String getId() { return id; }
         public String getName() { return name; }
         public String getDestination() { return destination; }
         public String getImageUrl() { return imageUrl; }
+        public String getGuideId() { return guideId; }
     }
 }

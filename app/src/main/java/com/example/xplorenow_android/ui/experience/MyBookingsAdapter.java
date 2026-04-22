@@ -19,15 +19,16 @@ import java.util.Locale;
 
 public class MyBookingsAdapter extends RecyclerView.Adapter<MyBookingsAdapter.BookingViewHolder> {
 
-    public interface OnBookingCancelListener {
+    public interface OnBookingActionListener {
         void onCancelClick(Booking booking);
+        void onRateClick(Booking booking);
     }
 
     private final List<Booking> items = new ArrayList<>();
-    private final OnBookingCancelListener cancelListener;
+    private final OnBookingActionListener actionListener;
 
-    public MyBookingsAdapter(OnBookingCancelListener cancelListener) {
-        this.cancelListener = cancelListener;
+    public MyBookingsAdapter(OnBookingActionListener actionListener) {
+        this.actionListener = actionListener;
     }
 
     public void setItems(List<Booking> newItems) {
@@ -48,7 +49,7 @@ public class MyBookingsAdapter extends RecyclerView.Adapter<MyBookingsAdapter.Bo
 
     @Override
     public void onBindViewHolder(@NonNull BookingViewHolder holder, int position) {
-        holder.bind(items.get(position), cancelListener);
+        holder.bind(items.get(position), actionListener);
     }
 
     @Override
@@ -64,7 +65,7 @@ public class MyBookingsAdapter extends RecyclerView.Adapter<MyBookingsAdapter.Bo
             this.binding = binding;
         }
 
-        void bind(Booking booking, OnBookingCancelListener listener) {
+        void bind(Booking booking, OnBookingActionListener listener) {
             binding.textBookingName.setText(booking.getExperience().getName());
             binding.textBookingStatus.setText(booking.getStatus().toUpperCase());
             binding.textBookingPrice.setText(String.format(Locale.getDefault(), "$%.0f", booking.getTotalPrice()));
@@ -75,14 +76,21 @@ public class MyBookingsAdapter extends RecyclerView.Adapter<MyBookingsAdapter.Bo
 
             setStatusBadgeColor(booking.getStatus());
 
-            // Solo mostrar botón cancelar si está confirmada
             binding.btnCancelBooking.setVisibility(
                     "confirmada".equalsIgnoreCase(booking.getStatus()) ? View.VISIBLE : View.GONE
             );
 
+            binding.btnRateBooking.setVisibility(booking.isCanRate() ? View.VISIBLE : View.GONE);
+
             binding.btnCancelBooking.setOnClickListener(v -> {
                 if (listener != null) {
                     listener.onCancelClick(booking);
+                }
+            });
+
+            binding.btnRateBooking.setOnClickListener(v -> {
+                if (listener != null) {
+                    listener.onRateClick(booking);
                 }
             });
 
