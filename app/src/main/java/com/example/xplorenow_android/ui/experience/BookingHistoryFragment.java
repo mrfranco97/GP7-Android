@@ -23,10 +23,14 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 @AndroidEntryPoint
-public class BookingHistoryFragment extends Fragment {
+public class BookingHistoryFragment extends Fragment implements HistoryFilterBottomSheetFragment.FilterListener {
 
     private FragmentBookingHistoryBinding binding;
     private BookingHistoryAdapter adapter;
+
+    private String dateFrom = null;
+    private String dateTo = null;
+    private String destination = null;
 
     @Inject
     BookingApi bookingApi;
@@ -43,6 +47,7 @@ public class BookingHistoryFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         setupRecyclerView();
+        setupFilters();
         setupListeners();
         fetchHistory();
     }
@@ -52,13 +57,42 @@ public class BookingHistoryFragment extends Fragment {
         binding.recyclerHistory.setAdapter(adapter);
     }
 
+    private void setupFilters() {
+        binding.btnShowFilters.setOnClickListener(v -> {
+            HistoryFilterBottomSheetFragment bottomSheet = new HistoryFilterBottomSheetFragment();
+            bottomSheet.setInitialFilters(dateFrom, dateTo, destination);
+            bottomSheet.setListener(this);
+            bottomSheet.show(getChildFragmentManager(), "HistoryFilterBottomSheet");
+        });
+        
+        binding.btnClearFilters.setOnClickListener(v -> {
+            dateFrom = null;
+            dateTo = null;
+            destination = null;
+            binding.btnClearFilters.setVisibility(View.GONE);
+            fetchHistory();
+        });
+    }
+
     private void setupListeners() {
         binding.btnBack.setOnClickListener(v -> Navigation.findNavController(v).navigateUp());
     }
 
+    @Override
+    public void onFiltersApplied(String dateFrom, String dateTo, String destination) {
+        this.dateFrom = dateFrom;
+        this.dateTo = dateTo;
+        this.destination = destination;
+        
+        boolean hasFilters = dateFrom != null || dateTo != null || destination != null;
+        binding.btnClearFilters.setVisibility(hasFilters ? View.VISIBLE : View.GONE);
+        
+        fetchHistory();
+    }
+
     private void fetchHistory() {
         binding.progressHistory.setVisibility(View.VISIBLE);
-        bookingApi.getBookingHistory(null, null, null).enqueue(new Callback<BookingHistoryResponse>() {
+        bookingApi.getBookingHistory(dateFrom, dateTo, destination).enqueue(new Callback<BookingHistoryResponse>() {
             @Override
             public void onResponse(Call<BookingHistoryResponse> call, Response<BookingHistoryResponse> response) {
                 if (isAdded()) {
@@ -87,6 +121,7 @@ public class BookingHistoryFragment extends Fragment {
             binding.recyclerHistory.setVisibility(View.VISIBLE);
             binding.textNoHistory.setVisibility(View.GONE);
         } else {
+            adapter.setItems(new java.util.ArrayList<>());
             binding.recyclerHistory.setVisibility(View.GONE);
             binding.textNoHistory.setVisibility(View.VISIBLE);
         }
