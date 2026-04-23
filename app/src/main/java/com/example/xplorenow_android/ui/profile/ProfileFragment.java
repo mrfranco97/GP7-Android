@@ -151,6 +151,7 @@ public class ProfileFragment extends Fragment {
     private void setupListeners() {
         binding.btnBack.setOnClickListener(v -> Navigation.findNavController(v).navigateUp());
         binding.btnMyBookings.setOnClickListener(v -> Navigation.findNavController(v).navigate(R.id.action_ProfileFragment_to_MyBookingsFragment));
+        binding.btnBookingHistory.setOnClickListener(v -> Navigation.findNavController(v).navigate(R.id.action_ProfileFragment_to_BookingHistoryFragment));
         binding.btnLogout.setOnClickListener(v -> Navigation.findNavController(v).navigateUp());
 
         binding.btnSaveProfile.setOnClickListener(v -> {
