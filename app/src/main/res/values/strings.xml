@@ -30,6 +30,12 @@
     <string name="booking_available_spots_format">%1$d cupos disponibles</string>
     <string name="booking_slot_chip_format">%1$s (%2$d cupos)</string>
 
+    <string name="history_title">Historial de Actividades</string>
+    <string name="history_empty">No se encontraron actividades finalizadas</string>
+    <string name="history_label_guide">Guía:</string>
+    <string name="history_label_activity">Actividad:</string>
+    <string name="my_bookings_title">Mis Reservas</string>
+
     <string name="previous">Volver</string>
     <string name="lorem_ipsum">Los detalles de la experiencia se mostrarán aquí.</string>
 </resources>

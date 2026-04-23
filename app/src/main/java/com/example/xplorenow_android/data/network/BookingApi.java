@@ -21,6 +21,13 @@ public interface BookingApi {
     @GET("api/bookings/me")
     Call<MyBookingsResponse> getMyBookings();
 
+    @GET("api/bookings/history")
+    Call<BookingHistoryResponse> getBookingHistory(
+            @Query("date_from") String dateFrom,
+            @Query("date_to") String dateTo,
+            @Query("destination") String destination
+    );
+
     @DELETE("api/bookings/{id}")
     Call<BookingCancellationResponse> cancelBooking(@Path("id") String id);
 
