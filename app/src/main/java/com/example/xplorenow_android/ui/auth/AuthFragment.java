@@ -12,12 +12,27 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 
 import com.example.xplorenow_android.R;
+import com.example.xplorenow_android.data.local.TokenManager;
+import com.example.xplorenow_android.data.network.AuthApi;
+import com.example.xplorenow_android.data.network.AuthResponse;
+import com.example.xplorenow_android.data.network.LoginRequest;
 import com.example.xplorenow_android.databinding.FragmentAuthBinding;
 
+import javax.inject.Inject;
+
 import dagger.hilt.android.AndroidEntryPoint;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 @AndroidEntryPoint
 public class AuthFragment extends Fragment {
+
+    @Inject
+    AuthApi authApi;
+
+    @Inject
+    TokenManager tokenManager;
 
     private FragmentAuthBinding binding;
 
@@ -31,6 +46,14 @@ public class AuthFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        // Si ya hay sesión activa, saltamos directo a la lista de experiencias
+        if (tokenManager.hasToken()) {
+            Navigation.findNavController(view)
+                    .navigate(R.id.action_AuthFragment_to_ExperienceListFragment);
+            return;
+        }
+
         setupListeners();
     }
 
@@ -49,8 +72,8 @@ public class AuthFragment extends Fragment {
             }
             binding.inputEmailLayout.setError(null);
             binding.inputPasswordLayout.setError(null);
-            // TODO: conectar con ViewModel cuando se implemente la capa de red
-            Toast.makeText(getContext(), "Login clásico: próximamente", Toast.LENGTH_SHORT).show();
+
+            doLogin(email, password);
         });
 
         binding.btnGoOtp.setOnClickListener(v ->
@@ -58,6 +81,36 @@ public class AuthFragment extends Fragment {
 
         binding.btnGoRegister.setOnClickListener(v ->
                 Navigation.findNavController(v).navigate(R.id.action_AuthFragment_to_RegisterFragment));
+    }
+
+    private void doLogin(String email, String password) {
+        setLoading(true);
+
+        authApi.login(new LoginRequest(email, password)).enqueue(new Callback<AuthResponse>() {
+            @Override
+            public void onResponse(@NonNull Call<AuthResponse> call, @NonNull Response<AuthResponse> response) {
+                setLoading(false);
+                if (response.isSuccessful() && response.body() != null) {
+                    tokenManager.saveToken(response.body().getToken());
+                    Navigation.findNavController(requireView())
+                            .navigate(R.id.action_AuthFragment_to_ExperienceListFragment);
+                } else {
+                    Toast.makeText(getContext(), getString(R.string.error_invalid_credentials), Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<AuthResponse> call, @NonNull Throwable t) {
+                setLoading(false);
+                Toast.makeText(getContext(), getString(R.string.error_connection), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void setLoading(boolean loading) {
+        binding.btnLogin.setEnabled(!loading);
+        binding.btnGoOtp.setEnabled(!loading);
+        binding.btnGoRegister.setEnabled(!loading);
     }
 
     @Override

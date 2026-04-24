@@ -1,5 +1,8 @@
 package com.example.xplorenow_android.di;
 
+import android.util.Log;
+
+import com.example.xplorenow_android.data.local.TokenManager;
 import com.example.xplorenow_android.data.network.AuthApi;
 import com.example.xplorenow_android.data.network.BookingApi;
 import com.example.xplorenow_android.data.network.CatalogApi;
@@ -11,6 +14,7 @@ import dagger.Module;
 import dagger.Provides;
 import dagger.hilt.InstallIn;
 import dagger.hilt.components.SingletonComponent;
+import okhttp3.OkHttpClient;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
@@ -19,12 +23,34 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class NetworkModule {
 
     private static final String BASE_URL = "http://10.0.2.2:3000/";
+    private static final String TAG = "NetworkModule";
 
     @Provides
     @Singleton
-    public Retrofit provideRetrofit() {
+    public OkHttpClient provideOkHttp(TokenManager tokenManager) {
+        return new OkHttpClient.Builder()
+                .addInterceptor(chain -> {
+                    String token = tokenManager.getToken();
+                    okhttp3.Request request = chain.request();
+                    if (token != null) {
+                        request = request.newBuilder()
+                                .addHeader("Authorization", "Bearer " + token)
+                                .build();
+                        Log.d(TAG, "Authorization header agregado: Bearer " + token);
+                    } else {
+                        Log.d(TAG, "Sin token — request sin Authorization header");
+                    }
+                    return chain.proceed(request);
+                })
+                .build();
+    }
+
+    @Provides
+    @Singleton
+    public Retrofit provideRetrofit(OkHttpClient okHttpClient) {
         return new Retrofit.Builder()
                 .baseUrl(BASE_URL)
+                .client(okHttpClient)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
     }
