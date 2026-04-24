@@ -40,6 +40,9 @@ public class Booking {
     @SerializedName("experience")
     private ExperienceSummary experience;
 
+    // Field to track offline changes
+    private boolean isPendingCancellation = false;
+
     @NonNull
     public String getId() { return id; }
     public void setId(@NonNull String id) { this.id = id; }
@@ -82,6 +85,9 @@ public class Booking {
 
     public ExperienceSummary getExperience() { return experience; }
     public void setExperience(ExperienceSummary experience) { this.experience = experience; }
+
+    public boolean isPendingCancellation() { return isPendingCancellation; }
+    public void setPendingCancellation(boolean pendingCancellation) { isPendingCancellation = pendingCancellation; }
 
     public static class ExperienceSummary {
         @SerializedName("id")

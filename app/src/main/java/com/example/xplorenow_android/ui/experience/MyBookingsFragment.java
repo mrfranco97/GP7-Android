@@ -92,8 +92,7 @@ public class MyBookingsFragment extends Fragment {
                     if (response.isSuccessful() && response.body() != null) {
                         List<Booking> bookings = response.body().getItems();
                         executor.execute(() -> {
-                            bookingDao.deleteAll();
-                            bookingDao.insertBookings(bookings);
+                            bookingDao.syncBookings(bookings);
                             mainHandler.post(() -> {
                                 binding.progressMyBookings.setVisibility(View.GONE);
                                 displayBookings(bookings);
@@ -148,7 +147,7 @@ public class MyBookingsFragment extends Fragment {
                 .setMessage("¿Estás seguro de que deseas cancelar tu reserva para " + booking.getExperience().getName() + "?")
                 .setNegativeButton("No, mantener", null)
                 .setPositiveButton("Sí, cancelar", (dialog, which) -> {
-                    cancelBooking(String.valueOf(booking.getId()));
+                    cancelBooking(booking);
                 })
                 .show();
     }
@@ -159,29 +158,41 @@ public class MyBookingsFragment extends Fragment {
         fragment.show(getChildFragmentManager(), "RatingBottomSheet");
     }
 
-    private void cancelBooking(String bookingId) {
+    private void cancelBooking(Booking booking) {
         binding.progressMyBookings.setVisibility(View.VISIBLE);
-        bookingApi.cancelBooking(bookingId).enqueue(new Callback<BookingCancellationResponse>() {
+        bookingApi.cancelBooking(booking.getId()).enqueue(new Callback<BookingCancellationResponse>() {
             @Override
-            public void onResponse(Call<BookingCancellationResponse> call, Response<BookingCancellationResponse> response) {
+            public void onResponse(@NonNull Call<BookingCancellationResponse> call, @NonNull Response<BookingCancellationResponse> response) {
                 if (isAdded()) {
                     binding.progressMyBookings.setVisibility(View.GONE);
                     if (response.isSuccessful() && response.body() != null) {
                         showCancellationDetails(response.body());
                         fetchMyBookings();
                     } else {
-                        Snackbar.make(binding.getRoot(), "Error al cancelar la reserva", Snackbar.LENGTH_LONG).show();
+                        markAsPendingCancellation(booking);
                     }
                 }
             }
 
             @Override
-            public void onFailure(Call<BookingCancellationResponse> call, Throwable t) {
+            public void onFailure(@NonNull Call<BookingCancellationResponse> call, @NonNull Throwable t) {
                 if (isAdded()) {
-                    binding.progressMyBookings.setVisibility(View.GONE);
-                    Snackbar.make(binding.getRoot(), t.getMessage(), Snackbar.LENGTH_LONG).show();
+                    markAsPendingCancellation(booking);
                 }
             }
+        });
+    }
+
+    private void markAsPendingCancellation(Booking booking) {
+        executor.execute(() -> {
+            booking.setPendingCancellation(true);
+            booking.setStatus("cancelada");
+            bookingDao.insertBooking(booking);
+            mainHandler.post(() -> {
+                binding.progressMyBookings.setVisibility(View.GONE);
+                Snackbar.make(binding.getRoot(), "Sin conexión. La cancelación se sincronizará automáticamente.", Snackbar.LENGTH_LONG).show();
+                fetchMyBookings();
+            });
         });
     }
 
