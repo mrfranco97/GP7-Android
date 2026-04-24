@@ -71,6 +71,9 @@
         <action
             android:id="@+id/action_ProfileFragment_to_MyBookingsFragment"
             app:destination="@id/MyBookingsFragment" />
+        <action
+            android:id="@+id/action_ProfileFragment_to_BookingHistoryFragment"
+            app:destination="@id/BookingHistoryFragment" />
     </fragment>
 
     <fragment
@@ -88,4 +91,24 @@
         android:name="com.example.xplorenow_android.ui.experience.MyBookingsFragment"
         android:label="My Bookings"
         tools:layout="@layout/fragment_my_bookings" />
+
+    <fragment
+        android:id="@+id/BookingHistoryFragment"
+        android:name="com.example.xplorenow_android.ui.experience.BookingHistoryFragment"
+        android:label="Booking History"
+        tools:layout="@layout/fragment_booking_history">
+        <action
+            android:id="@+id/action_BookingHistoryFragment_to_BookingDetailFragment"
+            app:destination="@id/BookingDetailFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/BookingDetailFragment"
+        android:name="com.example.xplorenow_android.ui.experience.BookingDetailFragment"
+        android:label="Booking Detail"
+        tools:layout="@layout/fragment_booking_detail">
+        <argument
+            android:name="bookingId"
+            app:argType="string" />
+    </fragment>
 </navigation>

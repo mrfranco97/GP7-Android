@@ -30,6 +30,7 @@
     <string name="booking_available_spots_format">%1$d cupos disponibles</string>
     <string name="booking_slot_chip_format">%1$s (%2$d cupos)</string>
 
+<<<<<<< HEAD
     <!-- Auth -->
     <string name="auth_subtitle">Descubrí experiencias únicas</string>
     <string name="auth_divider">— o —</string>
@@ -60,6 +61,13 @@
     <string name="error_required_name">El nombre es obligatorio</string>
     <string name="error_invalid_otp">El código debe tener exactamente 6 dígitos</string>
     <string name="error_passwords_dont_match">Las contraseñas no coinciden</string>
+=======
+    <string name="history_title">Historial de Actividades</string>
+    <string name="history_empty">No se encontraron actividades finalizadas</string>
+    <string name="history_label_guide">Guía:</string>
+    <string name="history_label_activity">Actividad:</string>
+    <string name="my_bookings_title">Mis Reservas</string>
+>>>>>>> main
 
     <string name="previous">Volver</string>
     <string name="lorem_ipsum">Los detalles de la experiencia se mostrarán aquí.</string>

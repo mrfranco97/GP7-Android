@@ -3,6 +3,7 @@ package com.example.xplorenow_android.ui.experience;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
@@ -18,7 +19,17 @@ import java.util.Locale;
 
 public class MyBookingsAdapter extends RecyclerView.Adapter<MyBookingsAdapter.BookingViewHolder> {
 
+    public interface OnBookingActionListener {
+        void onCancelClick(Booking booking);
+        void onRateClick(Booking booking);
+    }
+
     private final List<Booking> items = new ArrayList<>();
+    private final OnBookingActionListener actionListener;
+
+    public MyBookingsAdapter(OnBookingActionListener actionListener) {
+        this.actionListener = actionListener;
+    }
 
     public void setItems(List<Booking> newItems) {
         items.clear();
@@ -38,7 +49,7 @@ public class MyBookingsAdapter extends RecyclerView.Adapter<MyBookingsAdapter.Bo
 
     @Override
     public void onBindViewHolder(@NonNull BookingViewHolder holder, int position) {
-        holder.bind(items.get(position));
+        holder.bind(items.get(position), actionListener);
     }
 
     @Override
@@ -54,7 +65,7 @@ public class MyBookingsAdapter extends RecyclerView.Adapter<MyBookingsAdapter.Bo
             this.binding = binding;
         }
 
-        void bind(Booking booking) {
+        void bind(Booking booking, OnBookingActionListener listener) {
             binding.textBookingName.setText(booking.getExperience().getName());
             binding.textBookingStatus.setText(booking.getStatus().toUpperCase());
             binding.textBookingPrice.setText(String.format(Locale.getDefault(), "$%.0f", booking.getTotalPrice()));
@@ -64,6 +75,24 @@ public class MyBookingsAdapter extends RecyclerView.Adapter<MyBookingsAdapter.Bo
             binding.textBookingDateTime.setText(String.format("%s • %s", dateStr, booking.getTimeSlot()));
 
             setStatusBadgeColor(booking.getStatus());
+
+            binding.btnCancelBooking.setVisibility(
+                    "confirmada".equalsIgnoreCase(booking.getStatus()) ? View.VISIBLE : View.GONE
+            );
+
+            binding.btnRateBooking.setVisibility(booking.isCanRate() ? View.VISIBLE : View.GONE);
+
+            binding.btnCancelBooking.setOnClickListener(v -> {
+                if (listener != null) {
+                    listener.onCancelClick(booking);
+                }
+            });
+
+            binding.btnRateBooking.setOnClickListener(v -> {
+                if (listener != null) {
+                    listener.onRateClick(booking);
+                }
+            });
 
             Glide.with(binding.imageBookingExperience.getContext())
                     .load(booking.getExperience().getImageUrl())
@@ -87,7 +116,9 @@ public class MyBookingsAdapter extends RecyclerView.Adapter<MyBookingsAdapter.Bo
                     color = Color.parseColor("#0984E3"); // Blue
             }
             GradientDrawable drawable = (GradientDrawable) binding.textBookingStatus.getBackground();
-            drawable.setColor(color);
+            if (drawable != null) {
+                drawable.setColor(color);
+            }
         }
     }
 }

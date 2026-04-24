@@ -1,9 +1,12 @@
 package com.example.xplorenow_android.data.network;
 
+import com.example.xplorenow_android.data.model.Booking;
 import com.example.xplorenow_android.data.model.BookingRequest;
+import com.example.xplorenow_android.data.model.Rating;
 
 import retrofit2.Call;
 import retrofit2.http.Body;
+import retrofit2.http.DELETE;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
 import retrofit2.http.Path;
@@ -18,4 +21,20 @@ public interface BookingApi {
 
     @GET("api/bookings/me")
     Call<MyBookingsResponse> getMyBookings();
+
+    @GET("api/bookings/history")
+    Call<BookingHistoryResponse> getBookingHistory(
+            @Query("date_from") String dateFrom,
+            @Query("date_to") String dateTo,
+            @Query("destination") String destination
+    );
+
+    @GET("api/bookings/{id}")
+    Call<Booking> getBookingDetail(@Path("id") String id);
+
+    @DELETE("api/bookings/{id}")
+    Call<BookingCancellationResponse> cancelBooking(@Path("id") String id);
+
+    @POST("api/bookings/{bookingId}/rating")
+    Call<BookingResponse> submitRating(@Path("bookingId") String bookingId, @Body Rating rating);
 }
