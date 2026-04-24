@@ -1,5 +1,6 @@
 package com.example.xplorenow_android.data.network;
 
+import com.example.xplorenow_android.data.model.Booking;
 import com.example.xplorenow_android.data.model.BookingRequest;
 import com.example.xplorenow_android.data.model.Rating;
 
@@ -27,6 +28,9 @@ public interface BookingApi {
             @Query("date_to") String dateTo,
             @Query("destination") String destination
     );
+
+    @GET("api/bookings/{id}")
+    Call<Booking> getBookingDetail(@Path("id") String id);
 
     @DELETE("api/bookings/{id}")
     Call<BookingCancellationResponse> cancelBooking(@Path("id") String id);

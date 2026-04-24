@@ -10,6 +10,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 
+import com.example.xplorenow_android.R;
 import com.example.xplorenow_android.data.network.BookingApi;
 import com.example.xplorenow_android.data.network.BookingHistoryResponse;
 import com.example.xplorenow_android.databinding.FragmentBookingHistoryBinding;
@@ -54,6 +55,12 @@ public class BookingHistoryFragment extends Fragment implements HistoryFilterBot
 
     private void setupRecyclerView() {
         adapter = new BookingHistoryAdapter();
+        adapter.setOnItemClickListener(item -> {
+            Bundle args = new Bundle();
+            args.putString("bookingId", String.valueOf(item.getId()));
+            Navigation.findNavController(requireView()).navigate(
+                    R.id.action_BookingHistoryFragment_to_BookingDetailFragment, args);
+        });
         binding.recyclerHistory.setAdapter(adapter);
     }
 

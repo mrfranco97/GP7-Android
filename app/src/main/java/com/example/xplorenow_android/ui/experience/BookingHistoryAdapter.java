@@ -16,6 +16,15 @@ import java.util.List;
 public class BookingHistoryAdapter extends RecyclerView.Adapter<BookingHistoryAdapter.ViewHolder> {
 
     private List<BookingHistoryItem> items = new ArrayList<>();
+    private OnItemClickListener listener;
+
+    public interface OnItemClickListener {
+        void onItemClick(BookingHistoryItem item);
+    }
+
+    public void setOnItemClickListener(OnItemClickListener listener) {
+        this.listener = listener;
+    }
 
     public void setItems(List<BookingHistoryItem> items) {
         this.items = items;
@@ -32,7 +41,13 @@ public class BookingHistoryAdapter extends RecyclerView.Adapter<BookingHistoryAd
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        holder.bind(items.get(position));
+        BookingHistoryItem item = items.get(position);
+        holder.bind(item);
+        holder.itemView.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onItemClick(item);
+            }
+        });
     }
 
     @Override
