@@ -57,7 +57,12 @@ public class ExperienceAdapter extends PagingDataAdapter<Experience, ExperienceA
         public void bind(Experience item, OnExperienceClickListener listener) {
             binding.textName.setText(item.getName());
             binding.textDestination.setText(item.getDestination());
-            binding.textCategory.setText(item.getCategory());
+            
+            // Usar categoryLabel si está disponible, de lo contrario usar category
+            String categoryDisplay = (item.getCategoryLabel() != null && !item.getCategoryLabel().isEmpty()) 
+                    ? item.getCategoryLabel() : item.getCategory();
+            binding.textCategory.setText(categoryDisplay);
+
             binding.textDuration.setText(item.getDuration());
             binding.textPrice.setText(String.format(Locale.getDefault(), "$%.0f", item.getPrice()));
             binding.textSpots.setText(String.format(Locale.getDefault(), "%d cupos disponibles", item.getAvailableSpots()));
