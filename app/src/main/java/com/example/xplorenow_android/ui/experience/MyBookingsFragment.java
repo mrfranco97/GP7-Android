@@ -1,6 +1,8 @@
 package com.example.xplorenow_android.ui.experience;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,6 +12,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 
+import com.example.xplorenow_android.data.local.BookingDao;
 import com.example.xplorenow_android.data.model.Booking;
 import com.example.xplorenow_android.data.network.BookingApi;
 import com.example.xplorenow_android.data.network.BookingCancellationResponse;
@@ -20,6 +23,8 @@ import com.google.android.material.snackbar.Snackbar;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 import javax.inject.Inject;
 
@@ -33,9 +38,14 @@ public class MyBookingsFragment extends Fragment {
 
     private FragmentMyBookingsBinding binding;
     private MyBookingsAdapter adapter;
+    private final Executor executor = Executors.newSingleThreadExecutor();
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     @Inject
     BookingApi bookingApi;
+
+    @Inject
+    BookingDao bookingDao;
 
     @Nullable
     @Override
@@ -74,23 +84,50 @@ public class MyBookingsFragment extends Fragment {
 
     private void fetchMyBookings() {
         binding.progressMyBookings.setVisibility(View.VISIBLE);
+        
         bookingApi.getMyBookings().enqueue(new Callback<MyBookingsResponse>() {
             @Override
-            public void onResponse(Call<MyBookingsResponse> call, Response<MyBookingsResponse> response) {
+            public void onResponse(@NonNull Call<MyBookingsResponse> call, @NonNull Response<MyBookingsResponse> response) {
                 if (isAdded()) {
-                    binding.progressMyBookings.setVisibility(View.GONE);
                     if (response.isSuccessful() && response.body() != null) {
-                        displayBookings(response.body().getItems());
+                        List<Booking> bookings = response.body().getItems();
+                        executor.execute(() -> {
+                            bookingDao.deleteAll();
+                            bookingDao.insertBookings(bookings);
+                            mainHandler.post(() -> {
+                                binding.progressMyBookings.setVisibility(View.GONE);
+                                displayBookings(bookings);
+                            });
+                        });
+                    } else {
+                        loadFromLocal();
                     }
                 }
             }
 
             @Override
-            public void onFailure(Call<MyBookingsResponse> call, Throwable t) {
+            public void onFailure(@NonNull Call<MyBookingsResponse> call, @NonNull Throwable t) {
                 if (isAdded()) {
-                    binding.progressMyBookings.setVisibility(View.GONE);
+                    loadFromLocal();
                 }
             }
+        });
+    }
+
+    private void loadFromLocal() {
+        executor.execute(() -> {
+            List<Booking> bookings = bookingDao.getAllBookings();
+            mainHandler.post(() -> {
+                if (isAdded()) {
+                    binding.progressMyBookings.setVisibility(View.GONE);
+                    if (bookings != null && !bookings.isEmpty()) {
+                        displayBookings(bookings);
+                    } else {
+                        displayBookings(null);
+                        Snackbar.make(binding.getRoot(), "No hay datos disponibles sin conexión", Snackbar.LENGTH_LONG).show();
+                    }
+                }
+            });
         });
     }
 

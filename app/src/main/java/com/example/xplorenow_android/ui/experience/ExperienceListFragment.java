@@ -17,10 +17,18 @@ import androidx.paging.PagingLiveData;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.xplorenow_android.R;
+import com.example.xplorenow_android.data.local.BookingDao;
+import com.example.xplorenow_android.data.model.Booking;
 import com.example.xplorenow_android.data.model.Experience;
+import com.example.xplorenow_android.data.network.BookingApi;
 import com.example.xplorenow_android.data.network.ExperienceApi;
 import com.example.xplorenow_android.data.network.ExperienceResponse;
+import com.example.xplorenow_android.data.network.MyBookingsResponse;
 import com.example.xplorenow_android.databinding.FragmentExperienceListBinding;
+
+import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 import javax.inject.Inject;
 
@@ -36,9 +44,16 @@ public class ExperienceListFragment extends Fragment implements FilterBottomShee
     private ExperienceAdapter adapter;
     private RecommendedAdapter recommendedAdapter;
     private ExperienceFilters filters = new ExperienceFilters();
+    private final Executor executor = Executors.newSingleThreadExecutor();
 
     @Inject
     ExperienceApi experienceApi;
+
+    @Inject
+    BookingApi bookingApi;
+
+    @Inject
+    BookingDao bookingDao;
 
     @Override
     public View onCreateView(
@@ -58,12 +73,30 @@ public class ExperienceListFragment extends Fragment implements FilterBottomShee
         setupProfileNavigation();
         
         loadExperiences();
+        preFetchBookings();
     }
 
     @Override
     public void onResume() {
         super.onResume();
         fetchRecommendations();
+    }
+
+    private void preFetchBookings() {
+        bookingApi.getMyBookings().enqueue(new Callback<MyBookingsResponse>() {
+            @Override
+            public void onResponse(@NonNull Call<MyBookingsResponse> call, @NonNull Response<MyBookingsResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    List<Booking> bookings = response.body().getItems();
+                    executor.execute(() -> {
+                        bookingDao.deleteAll();
+                        bookingDao.insertBookings(bookings);
+                    });
+                }
+            }
+            @Override
+            public void onFailure(@NonNull Call<MyBookingsResponse> call, @NonNull Throwable t) {}
+        });
     }
 
     private void setupRecyclerView() {
