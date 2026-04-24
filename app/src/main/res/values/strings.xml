@@ -30,7 +30,6 @@
     <string name="booking_available_spots_format">%1$d cupos disponibles</string>
     <string name="booking_slot_chip_format">%1$s (%2$d cupos)</string>
 
-<<<<<<< HEAD
     <!-- Auth -->
     <string name="auth_subtitle">Descubrí experiencias únicas</string>
     <string name="auth_divider">— o —</string>

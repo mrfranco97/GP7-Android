@@ -50,6 +50,7 @@ dependencies {
     implementation(libs.retrofit.converter.gson)
     implementation(libs.hilt.android)
     annotationProcessor(libs.hilt.android.compiler)
+    implementation(libs.security.crypto)
 
 
     testImplementation(libs.junit)
