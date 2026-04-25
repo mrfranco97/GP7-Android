@@ -51,6 +51,11 @@ dependencies {
     implementation(libs.hilt.android)
     annotationProcessor(libs.hilt.android.compiler)
 
+    // Room
+    implementation(libs.room.runtime)
+    annotationProcessor(libs.room.compiler)
+    implementation(libs.room.guava)
+
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)

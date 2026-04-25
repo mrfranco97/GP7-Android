@@ -1,6 +1,8 @@
 package com.example.xplorenow_android.ui.experience;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,12 +13,15 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 
 import com.bumptech.glide.Glide;
+import com.example.xplorenow_android.data.local.BookingDao;
 import com.example.xplorenow_android.data.model.Booking;
 import com.example.xplorenow_android.data.network.BookingApi;
 import com.example.xplorenow_android.databinding.FragmentBookingDetailBinding;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.Locale;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 import javax.inject.Inject;
 
@@ -29,9 +34,14 @@ import retrofit2.Response;
 public class BookingDetailFragment extends Fragment {
 
     private FragmentBookingDetailBinding binding;
+    private final Executor executor = Executors.newSingleThreadExecutor();
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     @Inject
     BookingApi bookingApi;
+
+    @Inject
+    BookingDao bookingDao;
 
     @Nullable
     @Override
@@ -56,26 +66,48 @@ public class BookingDetailFragment extends Fragment {
 
     private void fetchBookingDetail(String id) {
         binding.progressDetail.setVisibility(View.VISIBLE);
+        
         bookingApi.getBookingDetail(id).enqueue(new Callback<Booking>() {
             @Override
-            public void onResponse(Call<Booking> call, Response<Booking> response) {
+            public void onResponse(@NonNull Call<Booking> call, @NonNull Response<Booking> response) {
                 if (isAdded()) {
-                    binding.progressDetail.setVisibility(View.GONE);
                     if (response.isSuccessful() && response.body() != null) {
-                        displayDetail(response.body());
+                        Booking booking = response.body();
+                        executor.execute(() -> {
+                            bookingDao.insertBooking(booking);
+                            mainHandler.post(() -> {
+                                binding.progressDetail.setVisibility(View.GONE);
+                                displayDetail(booking);
+                            });
+                        });
                     } else {
-                        showError("Error al cargar el detalle");
+                        loadBookingFromLocal(id);
                     }
                 }
             }
 
             @Override
-            public void onFailure(Call<Booking> call, Throwable t) {
+            public void onFailure(@NonNull Call<Booking> call, @NonNull Throwable t) {
                 if (isAdded()) {
-                    binding.progressDetail.setVisibility(View.GONE);
-                    showError(t.getMessage());
+                    loadBookingFromLocal(id);
                 }
             }
+        });
+    }
+
+    private void loadBookingFromLocal(String id) {
+        executor.execute(() -> {
+            Booking booking = bookingDao.getBookingById(id);
+            mainHandler.post(() -> {
+                if (isAdded()) {
+                    binding.progressDetail.setVisibility(View.GONE);
+                    if (booking != null) {
+                        displayDetail(booking);
+                    } else {
+                        showError("Detalle no disponible sin conexión");
+                    }
+                }
+            });
         });
     }
 

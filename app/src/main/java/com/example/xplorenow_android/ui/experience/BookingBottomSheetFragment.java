@@ -10,8 +10,9 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.example.xplorenow_android.data.local.BookingDao;
+import com.example.xplorenow_android.data.model.Booking;
 import com.example.xplorenow_android.data.model.BookingRequest;
-import com.example.xplorenow_android.data.model.Experience;
 import com.example.xplorenow_android.data.model.TimeSlot;
 import com.example.xplorenow_android.data.network.AvailabilityResponse;
 import com.example.xplorenow_android.data.network.BookingApi;
@@ -21,6 +22,8 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.android.material.chip.Chip;
 
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 import javax.inject.Inject;
 
@@ -39,9 +42,13 @@ public class BookingBottomSheetFragment extends BottomSheetDialogFragment {
     private int participants = 1;
     private int maxAvailableSpots = 0;
     private DateGridAdapter dateAdapter;
+    private final Executor executor = Executors.newSingleThreadExecutor();
 
     @Inject
     BookingApi bookingApi;
+
+    @Inject
+    BookingDao bookingDao;
 
     public static BookingBottomSheetFragment newInstance(int experienceId, String availableDate) {
         BookingBottomSheetFragment fragment = new BookingBottomSheetFragment();
@@ -94,8 +101,9 @@ public class BookingBottomSheetFragment extends BottomSheetDialogFragment {
             @Override
             public void onResponse(Call<BookingResponse> call, Response<BookingResponse> response) {
                 if (isAdded()) {
-                    if (response.isSuccessful()) {
+                    if (response.isSuccessful() && response.body() != null) {
                         Toast.makeText(getContext(), "¡Reserva confirmada!", Toast.LENGTH_LONG).show();
+                        fetchAndSaveBookingDetail(response.body().getId());
                         dismiss();
                     } else {
                         Toast.makeText(getContext(), "Error al procesar la reserva", Toast.LENGTH_SHORT).show();
@@ -108,6 +116,20 @@ public class BookingBottomSheetFragment extends BottomSheetDialogFragment {
                     Toast.makeText(getContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             }
+        });
+    }
+
+    private void fetchAndSaveBookingDetail(String bookingId) {
+        bookingApi.getBookingDetail(bookingId).enqueue(new Callback<Booking>() {
+            @Override
+            public void onResponse(@NonNull Call<Booking> call, @NonNull Response<Booking> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    Booking booking = response.body();
+                    executor.execute(() -> bookingDao.insertBooking(booking));
+                }
+            }
+            @Override
+            public void onFailure(@NonNull Call<Booking> call, @NonNull Throwable t) {}
         });
     }
 

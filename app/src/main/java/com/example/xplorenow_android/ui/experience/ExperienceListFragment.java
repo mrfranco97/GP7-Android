@@ -1,5 +1,8 @@
 package com.example.xplorenow_android.ui.experience;
 
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.Network;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,10 +20,19 @@ import androidx.paging.PagingLiveData;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.xplorenow_android.R;
+import com.example.xplorenow_android.data.local.BookingDao;
+import com.example.xplorenow_android.data.model.Booking;
 import com.example.xplorenow_android.data.model.Experience;
+import com.example.xplorenow_android.data.network.BookingApi;
+import com.example.xplorenow_android.data.network.BookingCancellationResponse;
 import com.example.xplorenow_android.data.network.ExperienceApi;
 import com.example.xplorenow_android.data.network.ExperienceResponse;
+import com.example.xplorenow_android.data.network.MyBookingsResponse;
 import com.example.xplorenow_android.databinding.FragmentExperienceListBinding;
+
+import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 import javax.inject.Inject;
 
@@ -36,9 +48,16 @@ public class ExperienceListFragment extends Fragment implements FilterBottomShee
     private ExperienceAdapter adapter;
     private RecommendedAdapter recommendedAdapter;
     private ExperienceFilters filters = new ExperienceFilters();
+    private final Executor executor = Executors.newSingleThreadExecutor();
 
     @Inject
     ExperienceApi experienceApi;
+
+    @Inject
+    BookingApi bookingApi;
+
+    @Inject
+    BookingDao bookingDao;
 
     @Override
     public View onCreateView(
@@ -56,14 +75,68 @@ public class ExperienceListFragment extends Fragment implements FilterBottomShee
         setupRecommendedCarousel();
         setupFilters();
         setupProfileNavigation();
+        setupNetworkMonitoring();
         
         loadExperiences();
+        preFetchBookings();
     }
 
     @Override
     public void onResume() {
         super.onResume();
         fetchRecommendations();
+    }
+
+    private void setupNetworkMonitoring() {
+        ConnectivityManager cm = (ConnectivityManager) requireContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+        cm.registerDefaultNetworkCallback(new ConnectivityManager.NetworkCallback() {
+            @Override
+            public void onAvailable(@NonNull Network network) {
+                if (isAdded()) {
+                    syncOfflineChanges();
+                }
+            }
+        });
+    }
+
+    private void syncOfflineChanges() {
+        executor.execute(() -> {
+            List<Booking> pending = bookingDao.getPendingCancellations();
+            for (Booking booking : pending) {
+                bookingApi.cancelBooking(booking.getId()).enqueue(new Callback<BookingCancellationResponse>() {
+                    @Override
+                    public void onResponse(@NonNull Call<BookingCancellationResponse> call, @NonNull Response<BookingCancellationResponse> response) {
+                        if (response.isSuccessful()) {
+                            executor.execute(() -> {
+                                booking.setPendingCancellation(false);
+                                bookingDao.insertBooking(booking);
+                            });
+                        }
+                    }
+                    @Override
+                    public void onFailure(@NonNull Call<BookingCancellationResponse> call, @NonNull Throwable t) {}
+                });
+            }
+        });
+    }
+
+    private void preFetchBookings() {
+        bookingApi.getMyBookings().enqueue(new Callback<MyBookingsResponse>() {
+            @Override
+            public void onResponse(@NonNull Call<MyBookingsResponse> call, @NonNull Response<MyBookingsResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    List<Booking> bookings = response.body().getItems();
+                    executor.execute(() -> {
+                        bookingDao.syncBookings(bookings);
+                        syncOfflineChanges(); // Also try syncing after update
+                    });
+                }
+            }
+            @Override
+            public void onFailure(@NonNull Call<MyBookingsResponse> call, @NonNull Throwable t) {
+                syncOfflineChanges(); // Try syncing even if pre-fetch fails
+            }
+        });
     }
 
     private void setupRecyclerView() {
