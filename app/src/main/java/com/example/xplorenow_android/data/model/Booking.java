@@ -138,6 +138,8 @@ public class Booking {
         private String availableDate;
         @SerializedName("guide")
         private GuideSummary guide;
+        @SerializedName("map")
+        private MapData map;
 
         public int getId() { return id; }
         public void setId(int id) { this.id = id; }
@@ -163,6 +165,52 @@ public class Booking {
         public void setAvailableDate(String availableDate) { this.availableDate = availableDate; }
         public GuideSummary getGuide() { return guide; }
         public void setGuide(GuideSummary guide) { this.guide = guide; }
+        public MapData getMap() { return map; }
+        public void setMap(MapData map) { this.map = map; }
+    }
+
+    public static class MapData {
+        @SerializedName("meeting_point")
+        private PointData meetingPoint;
+        @SerializedName("itinerary_points")
+        private List<PointData> itineraryPoints;
+        @SerializedName("has_route")
+        private boolean hasRoute;
+
+        public PointData getMeetingPoint() { return meetingPoint; }
+        public void setMeetingPoint(PointData meetingPoint) { this.meetingPoint = meetingPoint; }
+        public List<PointData> getItineraryPoints() { return itineraryPoints; }
+        public void setItineraryPoints(List<PointData> itineraryPoints) { this.itineraryPoints = itineraryPoints; }
+        public boolean isHasRoute() { return hasRoute; }
+        public void setHasRoute(boolean hasRoute) { this.hasRoute = hasRoute; }
+    }
+
+    public static class PointData {
+        @SerializedName("name")
+        private String name;
+        @SerializedName("address")
+        private String address;
+        @SerializedName("latitude")
+        private Double latitude;
+        @SerializedName("longitude")
+        private Double longitude;
+        @SerializedName("navigation_url")
+        private String navigationUrl;
+        @SerializedName("order")
+        private int order;
+
+        public String getName() { return name; }
+        public void setName(String name) { this.name = name; }
+        public String getAddress() { return address; }
+        public void setAddress(String address) { this.address = address; }
+        public Double getLatitude() { return latitude; }
+        public void setLatitude(Double latitude) { this.latitude = latitude; }
+        public Double getLongitude() { return longitude; }
+        public void setLongitude(Double longitude) { this.longitude = longitude; }
+        public String getNavigationUrl() { return navigationUrl; }
+        public void setNavigationUrl(String navigationUrl) { this.navigationUrl = navigationUrl; }
+        public int getOrder() { return order; }
+        public void setOrder(int order) { this.order = order; }
     }
 
     public static class GuideSummary {

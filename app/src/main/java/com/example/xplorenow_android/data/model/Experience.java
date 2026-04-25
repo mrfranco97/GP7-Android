@@ -40,6 +40,9 @@ public class Experience {
     @SerializedName("available_date")
     private String availableDate;
 
+    @SerializedName("map")
+    private Booking.MapData map;
+
     public int getId() { return id; }
     public String getName() { return name; }
     public String getDestination() { return destination; }
@@ -57,4 +60,5 @@ public class Experience {
     public String getCancellationPolicy() { return cancellationPolicy; }
     public List<String> getGallery() { return gallery; }
     public String getAvailableDate() { return availableDate; }
+    public Booking.MapData getMap() { return map; }
 }
