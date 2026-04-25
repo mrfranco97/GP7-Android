@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.hilt)
+    alias(libs.plugins.secrets)
 }
 
 android {
@@ -35,6 +36,21 @@ android {
     }
 }
 
+secrets {
+    // Optionally configure the name of the file to read secrets from.
+    // Defaults to "secrets.properties"
+    propertiesFileName = "secrets.properties"
+
+    // A properties file at this path is expected to be maintained by
+    // each developer and not checked into version control.
+    defaultPropertiesFileName = "local.defaults.properties"
+
+    // Configure which keys should be ignored by the plugin by providing regular expressions.
+    // "sdk.dir" is ignored by default.
+    ignoreList.add("keyToIgnore") // Ignore the key "keyToIgnore"
+    ignoreList.add("sdk.*")       // Ignore all keys matching the regexp "sdk.*"
+}
+
 dependencies {
     implementation(libs.appcompat)
     implementation(libs.material)
@@ -52,6 +68,13 @@ dependencies {
     annotationProcessor(libs.hilt.android.compiler)
     implementation(libs.security.crypto)
 
+    // Room
+    implementation(libs.room.runtime)
+    annotationProcessor(libs.room.compiler)
+    implementation(libs.room.guava)
+
+    // Maps
+    implementation(libs.play.services.maps)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)

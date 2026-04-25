@@ -1,5 +1,7 @@
 package com.example.xplorenow_android.ui.experience;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,9 +15,18 @@ import androidx.navigation.Navigation;
 
 import com.bumptech.glide.Glide;
 import com.example.xplorenow_android.R;
+import com.example.xplorenow_android.data.model.Booking;
 import com.example.xplorenow_android.data.model.Experience;
 import com.example.xplorenow_android.data.network.ExperienceApi;
 import com.example.xplorenow_android.databinding.FragmentExperienceDetailBinding;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.Locale;
 
@@ -27,11 +38,12 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 @AndroidEntryPoint
-public class ExperienceDetailFragment extends Fragment {
+public class ExperienceDetailFragment extends Fragment implements OnMapReadyCallback {
 
     private FragmentExperienceDetailBinding binding;
     private int experienceId;
     private Experience currentExperience;
+    private GoogleMap googleMap;
 
     @Inject
     ExperienceApi experienceApi;
@@ -54,6 +66,12 @@ public class ExperienceDetailFragment extends Fragment {
         setupToolbar();
         setupBookingButton();
         
+        SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager()
+                .findFragmentById(R.id.map_fragment);
+        if (mapFragment != null) {
+            mapFragment.getMapAsync(this);
+        }
+
         if (experienceId != 0) {
             fetchExperienceDetail(experienceId);
         }
@@ -71,6 +89,14 @@ public class ExperienceDetailFragment extends Fragment {
                 bookingSheet.show(getChildFragmentManager(), bookingSheet.getTag());
             }
         });
+    }
+
+    @Override
+    public void onMapReady(@NonNull GoogleMap googleMap) {
+        this.googleMap = googleMap;
+        if (currentExperience != null) {
+            setupMap();
+        }
     }
 
     private void fetchExperienceDetail(int id) {
@@ -136,6 +162,78 @@ public class ExperienceDetailFragment extends Fragment {
         } else {
             binding.textGalleryTitle.setVisibility(View.VISIBLE);
             binding.recyclerGallery.setVisibility(View.VISIBLE);
+        }
+
+        setupMap();
+        setupNavigationButton(exp);
+    }
+
+    private void setupMap() {
+        if (googleMap == null || currentExperience == null || currentExperience.getMap() == null) {
+            binding.cardMap.setVisibility(View.GONE);
+            return;
+        }
+
+        Booking.MapData mapData = currentExperience.getMap();
+        Booking.PointData meetingPoint = mapData.getMeetingPoint();
+
+        if (meetingPoint == null || meetingPoint.getLatitude() == null || meetingPoint.getLongitude() == null) {
+            binding.cardMap.setVisibility(View.GONE);
+            return;
+        }
+
+        binding.cardMap.setVisibility(View.VISIBLE);
+        googleMap.clear();
+
+        LatLngBounds.Builder boundsBuilder = new LatLngBounds.Builder();
+        int pointsCount = 0;
+
+        LatLng meetingLatLng = new LatLng(meetingPoint.getLatitude(), meetingPoint.getLongitude());
+        googleMap.addMarker(new MarkerOptions()
+                .position(meetingLatLng)
+                .title(meetingPoint.getName() != null ? meetingPoint.getName() : "Punto de encuentro")
+                .snippet(meetingPoint.getAddress())
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+        
+        boundsBuilder.include(meetingLatLng);
+        pointsCount++;
+
+        if (mapData.isHasRoute() && mapData.getItineraryPoints() != null) {
+            for (Booking.PointData point : mapData.getItineraryPoints()) {
+                if (point.getLatitude() != null && point.getLongitude() != null) {
+                    LatLng pointLatLng = new LatLng(point.getLatitude(), point.getLongitude());
+                    googleMap.addMarker(new MarkerOptions()
+                            .position(pointLatLng)
+                            .title(point.getName())
+                            .snippet(point.getAddress()));
+                    boundsBuilder.include(pointLatLng);
+                    pointsCount++;
+                }
+            }
+        }
+
+        if (pointsCount > 0) {
+            final int finalPointsCount = pointsCount;
+            googleMap.setOnMapLoadedCallback(() -> {
+                if (finalPointsCount > 1) {
+                    googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(boundsBuilder.build(), 150));
+                } else {
+                    googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(meetingLatLng, 14f));
+                }
+            });
+        }
+    }
+
+    private void setupNavigationButton(Experience exp) {
+        Booking.MapData mapData = exp.getMap();
+        if (mapData != null && mapData.getMeetingPoint() != null && mapData.getMeetingPoint().getNavigationUrl() != null) {
+            binding.btnHowToGet.setVisibility(View.VISIBLE);
+            binding.btnHowToGet.setOnClickListener(v -> {
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(mapData.getMeetingPoint().getNavigationUrl()));
+                startActivity(intent);
+            });
+        } else {
+            binding.btnHowToGet.setVisibility(View.GONE);
         }
     }
 
