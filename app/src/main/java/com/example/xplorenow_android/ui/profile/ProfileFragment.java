@@ -15,6 +15,7 @@ import com.example.xplorenow_android.R;
 import com.example.xplorenow_android.ui.user.UserPreferences;
 import com.example.xplorenow_android.data.model.Interest;
 import com.example.xplorenow_android.data.model.User;
+import com.example.xplorenow_android.data.local.TokenManager;
 import com.example.xplorenow_android.data.network.AuthApi;
 import com.example.xplorenow_android.data.network.CatalogApi;
 import com.example.xplorenow_android.databinding.FragmentProfileBinding;
@@ -38,9 +39,12 @@ public class ProfileFragment extends Fragment {
     
     @Inject
     AuthApi authApi;
-    
+
     @Inject
     CatalogApi catalogApi;
+
+    @Inject
+    TokenManager tokenManager;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -152,7 +156,10 @@ public class ProfileFragment extends Fragment {
         binding.btnBack.setOnClickListener(v -> Navigation.findNavController(v).navigateUp());
         binding.btnMyBookings.setOnClickListener(v -> Navigation.findNavController(v).navigate(R.id.action_ProfileFragment_to_MyBookingsFragment));
         binding.btnBookingHistory.setOnClickListener(v -> Navigation.findNavController(v).navigate(R.id.action_ProfileFragment_to_BookingHistoryFragment));
-        binding.btnLogout.setOnClickListener(v -> Navigation.findNavController(v).navigateUp());
+        binding.btnLogout.setOnClickListener(v -> {
+            tokenManager.clearToken();
+            Navigation.findNavController(v).navigate(R.id.action_ProfileFragment_to_AuthFragment);
+        });
 
         binding.btnSaveProfile.setOnClickListener(v -> {
             String name = binding.editName.getText().toString();

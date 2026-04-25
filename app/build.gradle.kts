@@ -66,6 +66,7 @@ dependencies {
     implementation(libs.retrofit.converter.gson)
     implementation(libs.hilt.android)
     annotationProcessor(libs.hilt.android.compiler)
+    implementation(libs.security.crypto)
 
     // Room
     implementation(libs.room.runtime)
