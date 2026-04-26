@@ -8,7 +8,7 @@
     <color name="background">#F8F9FA</color>
     <color name="text_main">#1A1A1A</color>
     <color name="text_secondary">#757575</color>
-    <color name="divider">#F0F0F0</color>
+    <color name="divider">#1A1A1A</color>
     <color name="chip_background">#F0F2F5</color>
 
     <!-- Standard colors -->

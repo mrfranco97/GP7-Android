@@ -67,6 +67,7 @@ dependencies {
     implementation(libs.hilt.android)
     annotationProcessor(libs.hilt.android.compiler)
     implementation(libs.security.crypto)
+    implementation(libs.biometric)
 
     // Room
     implementation(libs.room.runtime)
