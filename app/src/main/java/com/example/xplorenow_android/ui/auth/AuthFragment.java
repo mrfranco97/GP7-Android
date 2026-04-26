@@ -8,6 +8,9 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.biometric.BiometricManager;
+import androidx.biometric.BiometricPrompt;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 
@@ -43,21 +46,57 @@ public class AuthFragment extends Fragment {
         return binding.getRoot();
     }
 
+    private static final int ALLOWED_AUTHENTICATORS =
+            BiometricManager.Authenticators.BIOMETRIC_STRONG |
+            BiometricManager.Authenticators.DEVICE_CREDENTIAL;
+
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Si ya hay sesión activa, saltamos directo a la lista de experiencias
-        if (tokenManager.hasToken()) {
-            Navigation.findNavController(view)
-                    .navigate(R.id.action_AuthFragment_to_ExperienceListFragment);
-            return;
-        }
+        boolean canAuthenticate = canAuthenticateWithDevice();
 
         setupListeners();
+        binding.btnBiometric.setEnabled(tokenManager.hasToken() && canAuthenticate);
+    }
+
+    private boolean canAuthenticateWithDevice() {
+        BiometricManager manager = BiometricManager.from(requireContext());
+        return manager.canAuthenticate(ALLOWED_AUTHENTICATORS) == BiometricManager.BIOMETRIC_SUCCESS;
+    }
+
+    private void launchBiometricPrompt() {
+        BiometricPrompt.PromptInfo promptInfo = new BiometricPrompt.PromptInfo.Builder()
+                .setTitle(getString(R.string.biometric_prompt_title))
+                .setAllowedAuthenticators(ALLOWED_AUTHENTICATORS)
+                .build();
+
+        BiometricPrompt prompt = new BiometricPrompt(this,
+                ContextCompat.getMainExecutor(requireContext()),
+                new BiometricPrompt.AuthenticationCallback() {
+                    @Override
+                    public void onAuthenticationSucceeded(@NonNull BiometricPrompt.AuthenticationResult result) {
+                        Navigation.findNavController(requireView())
+                                .navigate(R.id.action_AuthFragment_to_ExperienceListFragment);
+                    }
+
+                    @Override
+                    public void onAuthenticationError(int errorCode, @NonNull CharSequence errString) {
+                        Toast.makeText(getContext(), errString, Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onAuthenticationFailed() {
+                        Toast.makeText(getContext(), "Huella no reconocida", Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+        prompt.authenticate(promptInfo);
     }
 
     private void setupListeners() {
+        binding.btnBiometric.setOnClickListener(v -> launchBiometricPrompt());
+
         binding.btnLogin.setOnClickListener(v -> {
             String email = binding.editEmail.getText().toString().trim();
             String password = binding.editPassword.getText().toString();
