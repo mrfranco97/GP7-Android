@@ -12,6 +12,7 @@
     <string name="filter_adventure">Aventura</string>
 
     <string name="profile_title">Perfil</string>
+    <string name="profile_personal_info">Información Personal</string>
     <string name="label_name">Nombre Completo</string>
     <string name="label_email">Correo Electrónico</string>
     <string name="label_phone">Teléfono de Contacto</string>
@@ -39,6 +40,10 @@
     <string name="btn_create_account">¿No tenés cuenta? Registrate</string>
     <string name="btn_login_biometric">Ingresar con huella digital</string>
     <string name="biometric_prompt_title">Verificar identidad</string>
+    <string name="security_title">Seguridad</string>
+    <string name="security_biometric_label">Acceso biométrico</string>
+    <string name="security_biometric_desc">Usá tu huella o PIN para ingresar</string>
+    <string name="security_biometric_unavailable">Tu dispositivo no tiene ningún bloqueo configurado</string>
     <string name="label_password">Contraseña</string>
     <string name="label_confirm_password">Confirmar contraseña</string>
 

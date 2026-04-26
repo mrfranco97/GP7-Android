@@ -57,7 +57,7 @@ public class AuthFragment extends Fragment {
         boolean canAuthenticate = canAuthenticateWithDevice();
 
         setupListeners();
-        binding.btnBiometric.setEnabled(tokenManager.hasToken() && canAuthenticate);
+        binding.btnBiometric.setEnabled(tokenManager.isBiometricEnabled() && canAuthenticate);
     }
 
     private boolean canAuthenticateWithDevice() {

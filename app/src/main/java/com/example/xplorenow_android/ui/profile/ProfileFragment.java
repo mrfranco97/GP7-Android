@@ -8,6 +8,9 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.biometric.BiometricManager;
+import androidx.biometric.BiometricPrompt;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 
@@ -57,6 +60,7 @@ public class ProfileFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         setupListeners();
+        setupBiometricSwitch();
         fetchProfile();
     }
 
@@ -152,14 +156,73 @@ public class ProfileFragment extends Fragment {
         }
     }
 
+    private static final int ALLOWED_AUTHENTICATORS =
+            BiometricManager.Authenticators.BIOMETRIC_STRONG |
+            BiometricManager.Authenticators.DEVICE_CREDENTIAL;
+
+    private void setupBiometricSwitch() {
+        BiometricManager manager = BiometricManager.from(requireContext());
+        boolean deviceCanAuthenticate = manager.canAuthenticate(ALLOWED_AUTHENTICATORS)
+                == BiometricManager.BIOMETRIC_SUCCESS;
+
+        if (!deviceCanAuthenticate) {
+            // El dispositivo no tiene ningún factor configurado: se deshabilita el switch
+            binding.switchBiometric.setEnabled(false);
+            Toast.makeText(getContext(), getString(R.string.security_biometric_unavailable), Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Reflejar el estado actual sin disparar el listener
+        binding.switchBiometric.setOnCheckedChangeListener(null);
+        binding.switchBiometric.setChecked(tokenManager.isBiometricEnabled());
+
+        binding.switchBiometric.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) {
+                // Al activar: pedir confirmación biométrica antes de guardar el flag
+                binding.switchBiometric.setChecked(false); // revertir visualmente hasta confirmar
+                launchBiometricConfirmation();
+            } else {
+                tokenManager.setBiometricEnabled(false);
+            }
+        });
+    }
+
+    private void launchBiometricConfirmation() {
+        BiometricPrompt.PromptInfo promptInfo = new BiometricPrompt.PromptInfo.Builder()
+                .setTitle(getString(R.string.biometric_prompt_title))
+                .setAllowedAuthenticators(ALLOWED_AUTHENTICATORS)
+                .build();
+
+        new BiometricPrompt(this,
+                ContextCompat.getMainExecutor(requireContext()),
+                new BiometricPrompt.AuthenticationCallback() {
+                    @Override
+                    public void onAuthenticationSucceeded(@NonNull BiometricPrompt.AuthenticationResult result) {
+                        tokenManager.setBiometricEnabled(true);
+                        binding.switchBiometric.setOnCheckedChangeListener(null);
+                        binding.switchBiometric.setChecked(true);
+                        // Restaurar el listener después de actualizar el estado
+                        setupBiometricSwitch();
+                    }
+
+                    @Override
+                    public void onAuthenticationError(int errorCode, @NonNull CharSequence errString) {
+                        // El usuario canceló: el switch ya está en false, no se hace nada
+                    }
+
+                    @Override
+                    public void onAuthenticationFailed() {
+                        // El sistema ya muestra feedback; el switch permanece en false
+                    }
+                }).authenticate(promptInfo);
+    }
+
     private void setupListeners() {
         binding.btnBack.setOnClickListener(v -> Navigation.findNavController(v).navigateUp());
         binding.btnMyBookings.setOnClickListener(v -> Navigation.findNavController(v).navigate(R.id.action_ProfileFragment_to_MyBookingsFragment));
         binding.btnBookingHistory.setOnClickListener(v -> Navigation.findNavController(v).navigate(R.id.action_ProfileFragment_to_BookingHistoryFragment));
-        binding.btnLogout.setOnClickListener(v -> {
-            tokenManager.clearToken();
-            Navigation.findNavController(v).navigate(R.id.action_ProfileFragment_to_AuthFragment);
-        });
+        binding.btnLogout.setOnClickListener(v ->
+                Navigation.findNavController(v).navigate(R.id.action_ProfileFragment_to_AuthFragment));
 
         binding.btnSaveProfile.setOnClickListener(v -> {
             String name = binding.editName.getText().toString();
