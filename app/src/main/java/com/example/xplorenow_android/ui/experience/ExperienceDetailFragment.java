@@ -12,6 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
+import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.bumptech.glide.Glide;
 import com.example.xplorenow_android.R;
@@ -162,10 +163,17 @@ public class ExperienceDetailFragment extends Fragment implements OnMapReadyCall
         } else {
             binding.textGalleryTitle.setVisibility(View.VISIBLE);
             binding.recyclerGallery.setVisibility(View.VISIBLE);
+            setupGallery(exp.getGallery());
         }
 
         setupMap();
         setupNavigationButton(exp);
+    }
+
+    private void setupGallery(java.util.List<String> gallery) {
+        GalleryAdapter adapter = new GalleryAdapter(gallery);
+        binding.recyclerGallery.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+        binding.recyclerGallery.setAdapter(adapter);
     }
 
     private void setupMap() {
