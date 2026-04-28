@@ -1,10 +1,17 @@
 package com.example.xplorenow_android.ui.profile;
 
+import android.Manifest;
+import android.content.SharedPreferences;
+import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
+import android.os.Build;
+import android.content.pm.PackageManager;
+import android.widget.ImageView;
+import android.net.Uri;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -13,6 +20,8 @@ import androidx.biometric.BiometricPrompt;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 
 import com.example.xplorenow_android.R;
 import com.example.xplorenow_android.ui.user.UserPreferences;
@@ -24,6 +33,7 @@ import com.example.xplorenow_android.data.network.CatalogApi;
 import com.example.xplorenow_android.databinding.FragmentProfileBinding;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.snackbar.Snackbar;
+import com.bumptech.glide.Glide;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,6 +58,38 @@ public class ProfileFragment extends Fragment {
 
     @Inject
     TokenManager tokenManager;
+
+    private static final String PREFS_NAME = "profile_prefs";
+    private static final String KEY_IMAGE_URI = "image_uri";
+
+    private ImageView ivProfile;
+
+
+    private final ActivityResultLauncher<String> permissionLauncher =
+            registerForActivityResult(
+                    new ActivityResultContracts.RequestPermission(),
+                    isGranted -> {
+                        if (isGranted) {
+                            openGallery();
+                        } else {
+                            Toast.makeText(requireContext(),
+                                    "Permiso denegado. No se puede acceder a la galería.",
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    });
+
+
+    private final ActivityResultLauncher<String> galleryLauncher =
+            registerForActivityResult(
+                    new ActivityResultContracts.GetContent(),
+                    uri -> {
+                        if (uri != null) {
+                            saveAndDisplay(uri);
+                        }
+                    });
+
+
+
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -130,6 +172,12 @@ public class ProfileFragment extends Fragment {
         binding.editName.setText(user.getName());
         binding.editEmail.setText(user.getEmail());
         binding.editPhone.setText(user.getPhone());
+        
+        // Usamos el binding directamente para la imagen de perfil
+        ivProfile = binding.imageProfile;
+
+        // Si ya existe una Uri guardada, la mostramos al entrar al Fragment
+        loadSavedImage();
     }
 
     private void showLoading(boolean isLoading) {
@@ -217,6 +265,8 @@ public class ProfileFragment extends Fragment {
                 }).authenticate(promptInfo);
     }
 
+
+
     private void setupListeners() {
         binding.btnBack.setOnClickListener(v -> Navigation.findNavController(v).navigateUp());
         binding.btnMyBookings.setOnClickListener(v -> Navigation.findNavController(v).navigate(R.id.action_ProfileFragment_to_MyBookingsFragment));
@@ -243,7 +293,60 @@ public class ProfileFragment extends Fragment {
             }
             updateProfile(name, email, phone, selectedInterests);
         });
+
+        binding.imageProfile.setOnClickListener(v -> {
+            checkPermissionAndOpenGallery();
+        });
     }
+
+    private void checkPermissionAndOpenGallery() {
+        String permission = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+                ? Manifest.permission.READ_MEDIA_IMAGES
+                : Manifest.permission.READ_EXTERNAL_STORAGE;
+
+        if (ContextCompat.checkSelfPermission(requireContext(), permission)
+                == PackageManager.PERMISSION_GRANTED) {
+            // Permiso ya otorgado → abrimos la galería directamente
+            openGallery();
+        } else {
+            // No tenemos permiso → lanzamos el diálogo del sistema
+            permissionLauncher.launch(permission);
+        }
+    }
+
+
+
+    private void openGallery() {
+        galleryLauncher.launch("image/*");
+    }
+
+    private void saveAndDisplay(Uri uri) {
+        SharedPreferences prefs = requireContext()
+                .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        prefs.edit().putString(KEY_IMAGE_URI, uri.toString()).apply();
+
+        displayImage(uri);
+    }
+
+    private void loadSavedImage() {
+        SharedPreferences prefs = requireContext()
+                .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        String uriString = prefs.getString(KEY_IMAGE_URI, null);
+        if (uriString != null) {
+            displayImage(Uri.parse(uriString));
+        }
+    }
+
+    private void displayImage(Uri uri) {
+        Glide.with(this)
+                .load(uri)       // carga directamente desde la Uri
+                .circleCrop()    // recorta en círculo
+                .into(ivProfile); // destino: el ImageView
+    }
+
+
+
+
 
     @Override
     public void onDestroyView() {
