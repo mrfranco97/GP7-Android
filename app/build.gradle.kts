@@ -69,6 +69,12 @@ dependencies {
     implementation(libs.security.crypto)
     implementation(libs.biometric)
 
+    // DataStore & RxJava
+    implementation(libs.datastore.preferences)
+    implementation(libs.datastore.preferences.rxjava3)
+    implementation(libs.rxjava)
+    implementation(libs.rxandroid)
+
     // Room
     implementation(libs.room.runtime)
     annotationProcessor(libs.room.compiler)
