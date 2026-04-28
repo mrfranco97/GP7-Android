@@ -19,6 +19,7 @@ import androidx.paging.PagingData;
 import androidx.paging.PagingLiveData;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.bumptech.glide.Glide;
 import com.example.xplorenow_android.R;
 import com.example.xplorenow_android.data.local.BookingDao;
 import com.example.xplorenow_android.data.model.Booking;
@@ -49,6 +50,9 @@ public class ExperienceListFragment extends Fragment implements FilterBottomShee
     private RecommendedAdapter recommendedAdapter;
     private ExperienceFilters filters = new ExperienceFilters();
     private final Executor executor = Executors.newSingleThreadExecutor();
+
+    private static final String PREFS_NAME = "profile_prefs";
+    private static final String KEY_IMAGE_URI = "image_uri";
 
     @Inject
     ExperienceApi experienceApi;
@@ -85,6 +89,21 @@ public class ExperienceListFragment extends Fragment implements FilterBottomShee
     public void onResume() {
         super.onResume();
         fetchRecommendations();
+        loadProfileImage();
+    }
+
+    private void loadProfileImage() {
+        android.content.SharedPreferences prefs = requireContext()
+                .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        String uriString = prefs.getString(KEY_IMAGE_URI, null);
+        if (uriString != null) {
+            Glide.with(this)
+                    .load(android.net.Uri.parse(uriString))
+                    .circleCrop()
+                    .into(binding.imageProfileAvatar);
+        } else {
+            binding.imageProfileAvatar.setImageResource(android.R.drawable.ic_menu_gallery);
+        }
     }
 
     private void setupNetworkMonitoring() {
