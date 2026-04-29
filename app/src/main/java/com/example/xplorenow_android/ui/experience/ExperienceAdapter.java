@@ -73,6 +73,16 @@ public class ExperienceAdapter extends PagingDataAdapter<Experience, ExperienceA
                     .placeholder(new ColorDrawable(Color.parseColor("#F0F2F5")))
                     .into(binding.imageActivity);
 
+            binding.btnFavorite.setOnClickListener(v -> {
+                boolean isSelected = !v.isSelected();
+                v.setSelected(isSelected);
+                if (isSelected) {
+                    binding.btnFavorite.setColorFilter(Color.BLACK);
+                } else {
+                    binding.btnFavorite.setColorFilter(Color.parseColor("#757575")); // text_secondary color
+                }
+            });
+
             itemView.setOnClickListener(v -> {
                 if (listener != null) {
                     listener.onExperienceClick(item);

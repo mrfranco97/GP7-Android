@@ -70,6 +70,16 @@ public class RecommendedAdapter extends RecyclerView.Adapter<RecommendedAdapter.
                     .placeholder(android.R.drawable.ic_menu_gallery)
                     .into(binding.imageRecommended);
 
+            binding.btnFavorite.setOnClickListener(v -> {
+                boolean isSelected = !v.isSelected();
+                v.setSelected(isSelected);
+                if (isSelected) {
+                    binding.btnFavorite.setColorFilter(android.graphics.Color.BLACK);
+                } else {
+                    binding.btnFavorite.setColorFilter(android.graphics.Color.parseColor("#757575"));
+                }
+            });
+
             itemView.setOnClickListener(v -> {
                 if (listener != null) {
                     listener.onExperienceClick(item);

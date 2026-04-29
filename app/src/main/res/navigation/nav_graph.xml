@@ -82,6 +82,11 @@
     </fragment>
 
     <fragment
+        android:id="@+id/FavoritesFragment"
+        android:name="androidx.fragment.app.Fragment"
+        android:label="Favorites" />
+
+    <fragment
         android:id="@+id/ExperienceDetailFragment"
         android:name="com.example.xplorenow_android.ui.experience.ExperienceDetailFragment"
         android:label="ExperienceDetail"

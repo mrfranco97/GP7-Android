@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/ExperienceListFragment"
+        android:icon="@android:drawable/ic_menu_search"
+        android:title="Explorar" />
+    <item
+        android:id="@+id/FavoritesFragment"
+        android:icon="@drawable/ic_heart"
+        android:title="Favoritos" />
+    <item
+        android:id="@+id/ProfileFragment"
+        android:icon="@android:drawable/ic_menu_myplaces"
+        android:title="Perfil" />
+</menu>

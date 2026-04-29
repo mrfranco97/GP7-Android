@@ -6,6 +6,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.navigation.NavController;
 import androidx.navigation.NavOptions;
 import androidx.navigation.Navigation;
+import androidx.navigation.ui.NavigationUI;
+import android.view.View;
 
 import com.example.xplorenow_android.R;
 import com.example.xplorenow_android.databinding.ActivityMainBinding;
@@ -31,6 +33,18 @@ public class MainActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
 
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
+
+        NavigationUI.setupWithNavController(binding.bottomNav, navController);
+
+        navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
+            if (destination.getId() == R.id.ExperienceListFragment ||
+                    destination.getId() == R.id.ProfileFragment ||
+                    destination.getId() == R.id.FavoritesFragment) {
+                binding.bottomNav.setVisibility(View.VISIBLE);
+            } else {
+                binding.bottomNav.setVisibility(View.GONE);
+            }
+        });
 
         authEventBus.getSessionExpired().observe(this, expired -> {
             if (Boolean.TRUE.equals(expired)) {
