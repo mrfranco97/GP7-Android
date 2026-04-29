@@ -35,12 +35,19 @@ import com.google.android.material.chip.Chip;
 import com.google.android.material.snackbar.Snackbar;
 import com.bumptech.glide.Glide;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
 
 import dagger.hilt.android.AndroidEntryPoint;
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -58,9 +65,6 @@ public class ProfileFragment extends Fragment {
 
     @Inject
     TokenManager tokenManager;
-
-    private static final String PREFS_NAME = "profile_prefs";
-    private static final String KEY_IMAGE_URI = "image_uri";
 
     private ImageView ivProfile;
 
@@ -84,7 +88,7 @@ public class ProfileFragment extends Fragment {
                     new ActivityResultContracts.GetContent(),
                     uri -> {
                         if (uri != null) {
-                            saveAndDisplay(uri);
+                            uploadProfilePicture(uri);
                         }
                     });
 
@@ -176,8 +180,8 @@ public class ProfileFragment extends Fragment {
         // Usamos el binding directamente para la imagen de perfil
         ivProfile = binding.imageProfile;
 
-        // Si ya existe una Uri guardada, la mostramos al entrar al Fragment
-        loadSavedImage();
+        // Cargamos la imagen desde el servidor
+        loadProfilePicture();
     }
 
     private void showLoading(boolean isLoading) {
@@ -320,21 +324,70 @@ public class ProfileFragment extends Fragment {
         galleryLauncher.launch("image/*");
     }
 
-    private void saveAndDisplay(Uri uri) {
-        SharedPreferences prefs = requireContext()
-                .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        prefs.edit().putString(KEY_IMAGE_URI, uri.toString()).apply();
+    private void uploadProfilePicture(Uri uri) {
+        showLoading(true);
+        try {
+            File file = new File(requireContext().getCacheDir(), "profile_temp.jpg");
+            InputStream inputStream = requireContext().getContentResolver().openInputStream(uri);
+            FileOutputStream outputStream = new FileOutputStream(file);
+            byte[] buffer = new byte[1024];
+            int read;
+            while ((read = inputStream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, read);
+            }
+            outputStream.flush();
+            outputStream.close();
+            inputStream.close();
 
-        displayImage(uri);
+            RequestBody requestFile = RequestBody.create(MediaType.parse("image/*"), file);
+            MultipartBody.Part body = MultipartBody.Part.createFormData("profilePicture", file.getName(), requestFile);
+
+            authApi.uploadProfilePicture(body).enqueue(new Callback<ResponseBody>() {
+                @Override
+                public void onResponse(@NonNull Call<ResponseBody> call, @NonNull Response<ResponseBody> response) {
+                    showLoading(false);
+                    if (response.isSuccessful()) {
+                        displayImage(uri);
+                        Toast.makeText(getContext(), "Foto actualizada", Toast.LENGTH_SHORT).show();
+                    } else {
+                        showError("Error al subir la imagen");
+                    }
+                }
+
+                @Override
+                public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable t) {
+                    showLoading(false);
+                    showError("Error de red: " + t.getMessage());
+                }
+            });
+        } catch (Exception e) {
+            showLoading(false);
+            showError("Error al procesar la imagen");
+        }
     }
 
-    private void loadSavedImage() {
-        SharedPreferences prefs = requireContext()
-                .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        String uriString = prefs.getString(KEY_IMAGE_URI, null);
-        if (uriString != null) {
-            displayImage(Uri.parse(uriString));
-        }
+    private void loadProfilePicture() {
+        authApi.getProfilePicture().enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(@NonNull Call<ResponseBody> call, @NonNull Response<ResponseBody> response) {
+                if (isAdded() && response.isSuccessful() && response.body() != null) {
+                    try {
+                        byte[] bytes = response.body().bytes();
+                        Glide.with(ProfileFragment.this)
+                                .load(bytes)
+                                .circleCrop()
+                                .placeholder(R.drawable.ic_launcher_foreground)
+                                .into(binding.imageProfile);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable t) {
+            }
+        });
     }
 
     private void displayImage(Uri uri) {
