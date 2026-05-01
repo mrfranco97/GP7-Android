@@ -19,10 +19,12 @@ import androidx.paging.PagingData;
 import androidx.paging.PagingLiveData;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.bumptech.glide.Glide;
 import com.example.xplorenow_android.R;
 import com.example.xplorenow_android.data.local.BookingDao;
 import com.example.xplorenow_android.data.model.Booking;
 import com.example.xplorenow_android.data.model.Experience;
+import com.example.xplorenow_android.data.network.AuthApi;
 import com.example.xplorenow_android.data.network.BookingApi;
 import com.example.xplorenow_android.data.network.BookingCancellationResponse;
 import com.example.xplorenow_android.data.network.ExperienceApi;
@@ -52,6 +54,9 @@ public class ExperienceListFragment extends Fragment implements FilterBottomShee
 
     @Inject
     ExperienceApi experienceApi;
+
+    @Inject
+    AuthApi authApi;
 
     @Inject
     BookingApi bookingApi;
@@ -85,6 +90,36 @@ public class ExperienceListFragment extends Fragment implements FilterBottomShee
     public void onResume() {
         super.onResume();
         fetchRecommendations();
+        loadProfileImage();
+    }
+
+    private void loadProfileImage() {
+        authApi.getProfilePicture().enqueue(new Callback<okhttp3.ResponseBody>() {
+            @Override
+            public void onResponse(@NonNull Call<okhttp3.ResponseBody> call, @NonNull Response<okhttp3.ResponseBody> response) {
+                if (isAdded() && response.isSuccessful() && response.body() != null) {
+                    try {
+                        byte[] bytes = response.body().bytes();
+                        Glide.with(ExperienceListFragment.this)
+                                .load(bytes)
+                                .circleCrop()
+                                .placeholder(android.R.drawable.ic_menu_gallery)
+                                .into(binding.imageProfileAvatar);
+                    } catch (Exception e) {
+                        binding.imageProfileAvatar.setImageResource(android.R.drawable.ic_menu_gallery);
+                    }
+                } else {
+                    binding.imageProfileAvatar.setImageResource(android.R.drawable.ic_menu_gallery);
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<okhttp3.ResponseBody> call, @NonNull Throwable t) {
+                if (isAdded()) {
+                    binding.imageProfileAvatar.setImageResource(android.R.drawable.ic_menu_gallery);
+                }
+            }
+        });
     }
 
     private void setupNetworkMonitoring() {

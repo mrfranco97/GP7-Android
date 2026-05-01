@@ -1,10 +1,17 @@
 package com.example.xplorenow_android.ui.profile;
 
+import android.Manifest;
+import android.content.SharedPreferences;
+import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
+import android.os.Build;
+import android.content.pm.PackageManager;
+import android.widget.ImageView;
+import android.net.Uri;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -13,6 +20,8 @@ import androidx.biometric.BiometricPrompt;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 
 import com.example.xplorenow_android.R;
 import com.example.xplorenow_android.ui.user.UserPreferences;
@@ -24,13 +33,21 @@ import com.example.xplorenow_android.data.network.CatalogApi;
 import com.example.xplorenow_android.databinding.FragmentProfileBinding;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.snackbar.Snackbar;
+import com.bumptech.glide.Glide;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
 
 import dagger.hilt.android.AndroidEntryPoint;
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -48,6 +65,35 @@ public class ProfileFragment extends Fragment {
 
     @Inject
     TokenManager tokenManager;
+
+    private ImageView ivProfile;
+
+
+    private final ActivityResultLauncher<String> permissionLauncher =
+            registerForActivityResult(
+                    new ActivityResultContracts.RequestPermission(),
+                    isGranted -> {
+                        if (isGranted) {
+                            openGallery();
+                        } else {
+                            Toast.makeText(requireContext(),
+                                    "Permiso denegado. No se puede acceder a la galería.",
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    });
+
+
+    private final ActivityResultLauncher<String> galleryLauncher =
+            registerForActivityResult(
+                    new ActivityResultContracts.GetContent(),
+                    uri -> {
+                        if (uri != null) {
+                            uploadProfilePicture(uri);
+                        }
+                    });
+
+
+
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -130,6 +176,12 @@ public class ProfileFragment extends Fragment {
         binding.editName.setText(user.getName());
         binding.editEmail.setText(user.getEmail());
         binding.editPhone.setText(user.getPhone());
+        
+        // Usamos el binding directamente para la imagen de perfil
+        ivProfile = binding.imageProfile;
+
+        // Cargamos la imagen desde el servidor
+        loadProfilePicture();
     }
 
     private void showLoading(boolean isLoading) {
@@ -217,6 +269,8 @@ public class ProfileFragment extends Fragment {
                 }).authenticate(promptInfo);
     }
 
+
+
     private void setupListeners() {
         binding.btnBack.setOnClickListener(v -> Navigation.findNavController(v).navigateUp());
         binding.btnMyBookings.setOnClickListener(v -> Navigation.findNavController(v).navigate(R.id.action_ProfileFragment_to_MyBookingsFragment));
@@ -243,7 +297,109 @@ public class ProfileFragment extends Fragment {
             }
             updateProfile(name, email, phone, selectedInterests);
         });
+
+        binding.imageProfile.setOnClickListener(v -> {
+            checkPermissionAndOpenGallery();
+        });
     }
+
+    private void checkPermissionAndOpenGallery() {
+        String permission = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+                ? Manifest.permission.READ_MEDIA_IMAGES
+                : Manifest.permission.READ_EXTERNAL_STORAGE;
+
+        if (ContextCompat.checkSelfPermission(requireContext(), permission)
+                == PackageManager.PERMISSION_GRANTED) {
+            // Permiso ya otorgado → abrimos la galería directamente
+            openGallery();
+        } else {
+            // No tenemos permiso → lanzamos el diálogo del sistema
+            permissionLauncher.launch(permission);
+        }
+    }
+
+
+
+    private void openGallery() {
+        galleryLauncher.launch("image/*");
+    }
+
+    private void uploadProfilePicture(Uri uri) {
+        showLoading(true);
+        try {
+            File file = new File(requireContext().getCacheDir(), "profile_temp.jpg");
+            InputStream inputStream = requireContext().getContentResolver().openInputStream(uri);
+            FileOutputStream outputStream = new FileOutputStream(file);
+            byte[] buffer = new byte[1024];
+            int read;
+            while ((read = inputStream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, read);
+            }
+            outputStream.flush();
+            outputStream.close();
+            inputStream.close();
+
+            RequestBody requestFile = RequestBody.create(MediaType.parse("image/*"), file);
+            MultipartBody.Part body = MultipartBody.Part.createFormData("profilePicture", file.getName(), requestFile);
+
+            authApi.uploadProfilePicture(body).enqueue(new Callback<ResponseBody>() {
+                @Override
+                public void onResponse(@NonNull Call<ResponseBody> call, @NonNull Response<ResponseBody> response) {
+                    showLoading(false);
+                    if (response.isSuccessful()) {
+                        displayImage(uri);
+                        Toast.makeText(getContext(), "Foto actualizada", Toast.LENGTH_SHORT).show();
+                    } else {
+                        showError("Error al subir la imagen");
+                    }
+                }
+
+                @Override
+                public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable t) {
+                    showLoading(false);
+                    showError("Error de red: " + t.getMessage());
+                }
+            });
+        } catch (Exception e) {
+            showLoading(false);
+            showError("Error al procesar la imagen");
+        }
+    }
+
+    private void loadProfilePicture() {
+        authApi.getProfilePicture().enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(@NonNull Call<ResponseBody> call, @NonNull Response<ResponseBody> response) {
+                if (isAdded() && response.isSuccessful() && response.body() != null) {
+                    try {
+                        byte[] bytes = response.body().bytes();
+                        Glide.with(ProfileFragment.this)
+                                .load(bytes)
+                                .circleCrop()
+                                .placeholder(R.drawable.ic_launcher_foreground)
+                                .into(binding.imageProfile);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable t) {
+            }
+        });
+    }
+
+    private void displayImage(Uri uri) {
+        Glide.with(this)
+                .load(uri)       // carga directamente desde la Uri
+                .circleCrop()    // recorta en círculo
+                .into(ivProfile); // destino: el ImageView
+    }
+
+
+
+
 
     @Override
     public void onDestroyView() {
