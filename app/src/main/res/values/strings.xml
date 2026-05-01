@@ -78,7 +78,7 @@
     <string name="history_label_guide">Guía:</string>
     <string name="history_label_activity">Actividad:</string>
     <string name="my_bookings_title">Mis Reservas</string>
-    <string name="favorite">Favorito</string>
+    <string name="favorite">Favoritos</string>
 
     <string name="previous">Volver</string>
     <string name="lorem_ipsum">Los detalles de la experiencia se mostrarán aquí.</string>
