@@ -2,11 +2,15 @@ package com.example.xplorenow_android.di;
 
 import android.util.Log;
 
+import com.example.xplorenow_android.data.local.AppDatabase;
 import com.example.xplorenow_android.data.local.TokenManager;
+import com.example.xplorenow_android.data.model.NetworkStatus;
 import com.example.xplorenow_android.data.network.AuthApi;
 import com.example.xplorenow_android.data.network.BookingApi;
 import com.example.xplorenow_android.data.network.CatalogApi;
 import com.example.xplorenow_android.data.network.ExperienceApi;
+
+import java.io.IOException;
 
 import javax.inject.Singleton;
 
@@ -27,7 +31,7 @@ public class NetworkModule {
 
     @Provides
     @Singleton
-    public OkHttpClient provideOkHttp(TokenManager tokenManager, AuthEventBus authEventBus) {
+    public OkHttpClient provideOkHttp(TokenManager tokenManager, AuthEventBus authEventBus, AppDatabase db) {
         return new OkHttpClient.Builder()
                 .addInterceptor(chain -> {
                     String token = tokenManager.getToken();
@@ -36,21 +40,26 @@ public class NetworkModule {
                         request = request.newBuilder()
                                 .addHeader("Authorization", "Bearer " + token)
                                 .build();
-                        Log.d(TAG, "Authorization header agregado: Bearer " + token);
-                    } else {
-                        Log.d(TAG, "Sin token — request sin Authorization header");
                     }
 
-                    okhttp3.Response response = chain.proceed(request);
+                    try {
+                        okhttp3.Response response = chain.proceed(request);
+                        
+                        db.networkStatusDao().updateStatus(new NetworkStatus(true));
 
-                    if (response.code() == 401) {
-                        Log.d(TAG, "Token vencido — emitiendo sesión expirada");
-                        tokenManager.clearToken();
-                        tokenManager.setBiometricEnabled(false);
-                        authEventBus.emitSessionExpired();
+                        if (response.code() == 401) {
+                            Log.d(TAG, "Token vencido — emitiendo sesión expirada");
+                            tokenManager.clearToken();
+                            tokenManager.setBiometricEnabled(false);
+                            authEventBus.emitSessionExpired();
+                        }
+
+                        return response;
+                    } catch (IOException e) {
+                        Log.e(TAG, "Error de red detectado: " + e.getMessage());
+                        db.networkStatusDao().updateStatus(new NetworkStatus(false));
+                        throw e;
                     }
-
-                    return response;
                 })
                 .build();
     }
