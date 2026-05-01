@@ -78,6 +78,27 @@ public class FavoritesAdapter extends RecyclerView.Adapter<FavoritesAdapter.View
             binding.textPrice.setText(String.format(Locale.getDefault(), "$%.0f", item.getActivity().getPrice()));
             binding.textSpots.setText(String.format(Locale.getDefault(), "%d cupos disponibles", item.getActivity().getAvailableSpots()));
 
+            binding.badgeNovelty.setVisibility(android.view.View.GONE);
+            binding.textPreviousPrice.setVisibility(android.view.View.GONE);
+            binding.textPreviousSpots.setVisibility(android.view.View.GONE);
+            binding.textPrice.setTextColor(Color.parseColor("#212121"));
+
+            if (item.getNovelty() != null && item.getNovelty().hasNews()) {
+                binding.badgeNovelty.setVisibility(android.view.View.VISIBLE);
+
+                if (item.getNovelty().isPriceChanged()) {
+                    binding.textPreviousPrice.setVisibility(android.view.View.VISIBLE);
+                    binding.textPreviousPrice.setText(String.format(Locale.getDefault(), "$%.0f", item.getNovelty().getPreviousPrice()));
+                    binding.textPreviousPrice.setPaintFlags(binding.textPreviousPrice.getPaintFlags() | android.graphics.Paint.STRIKE_THRU_TEXT_FLAG);
+                    binding.textPrice.setTextColor(Color.parseColor("#E53935"));
+                }
+
+                if (item.getNovelty().isNewSpotsReleased()) {
+                    binding.textPreviousSpots.setVisibility(android.view.View.VISIBLE);
+                    binding.textPreviousSpots.setText(String.format(Locale.getDefault(), "%d", item.getNovelty().getPreviousAvailableSpots()));
+                    binding.textPreviousSpots.setPaintFlags(binding.textPreviousSpots.getPaintFlags() | android.graphics.Paint.STRIKE_THRU_TEXT_FLAG);
+                }
+            }
             Glide.with(binding.imageActivity.getContext())
                     .load(item.getActivity().getImageUrl())
                     .transition(DrawableTransitionOptions.withCrossFade())

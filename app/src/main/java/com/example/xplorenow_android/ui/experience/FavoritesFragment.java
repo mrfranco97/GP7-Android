@@ -112,6 +112,10 @@ public class FavoritesFragment extends Fragment {
     }
 
     private void navigateToDetail(Favorite favorite) {
+        if (sharedViewModel != null && favorite.getNovelty() != null && favorite.getNovelty().hasNews()) {
+            sharedViewModel.markFavoriteSeen(favorite.getActivity().getId());
+        }
+
         Bundle args = new Bundle();
         args.putInt("experienceId", favorite.getActivity().getId());
         Navigation.findNavController(requireView()).navigate(

@@ -40,6 +40,22 @@
                 android:padding="8dp"
                 android:src="@drawable/ic_heart"
                 app:tint="@color/text_secondary" />
+
+            <TextView
+                android:id="@+id/badge_novelty"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|start"
+                android:layout_margin="12dp"
+                android:background="@drawable/bg_badge_novelty"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="4dp"
+                android:text="¡Cambios!"
+                android:textColor="@android:color/white"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:visibility="visible" />
         </FrameLayout>
 
         <androidx.constraintlayout.widget.ConstraintLayout
@@ -105,6 +121,20 @@
                 tools:text="6 hours" />
 
             <TextView
+                android:id="@+id/text_previous_spots"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:layout_marginEnd="6dp"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp"
+                android:visibility="gone"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/text_duration"
+                tools:text="15"
+                tools:visibility="visible" />
+
+            <TextView
                 android:id="@+id/text_spots"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -112,9 +142,22 @@
                 android:textColor="@color/accent"
                 android:textSize="12sp"
                 android:textStyle="bold"
-                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintStart_toEndOf="@id/text_previous_spots"
                 app:layout_constraintTop_toBottomOf="@id/text_duration"
                 tools:text="12 cupos disponibles" />
+
+            <TextView
+                android:id="@+id/text_previous_price"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="6dp"
+                android:textColor="@color/text_secondary"
+                android:textSize="14sp"
+                android:visibility="gone"
+                app:layout_constraintBaseline_toBaselineOf="@id/text_price"
+                app:layout_constraintEnd_toStartOf="@id/text_price"
+                tools:text="$150"
+                tools:visibility="visible" />
 
             <TextView
                 android:id="@+id/text_price"

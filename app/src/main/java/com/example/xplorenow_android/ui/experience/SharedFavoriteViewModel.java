@@ -90,6 +90,22 @@ public class SharedFavoriteViewModel extends ViewModel {
         }
     }
 
+    public void markFavoriteSeen(int experienceId) {
+        favoriteApi.markFavoriteSeen(experienceId).enqueue(new Callback<Favorite>() {
+            @Override
+            public void onResponse(@NonNull Call<Favorite> call, @NonNull Response<Favorite> response) {
+                // Fuego y olvido (fire-and-forget), no necesitamos actualizar la UI aquí porque
+                // el fragmento refrescará la lista la próxima vez que se abra o el usuario
+                // ya estará en la pantalla de detalle.
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<Favorite> call, @NonNull Throwable t) {
+                // Solo loguear el error si tuviéramos un Logger
+            }
+        });
+    }
+
     private void showToast(String message) {
         new Handler(Looper.getMainLooper()).post(() -> 
                 Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
