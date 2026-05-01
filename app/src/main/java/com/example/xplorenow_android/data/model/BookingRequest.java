@@ -4,7 +4,7 @@ import com.google.gson.annotations.SerializedName;
 
 public class BookingRequest {
     @SerializedName("experienceId")
-    private String experienceId;
+    private int experienceId;
     @SerializedName("date")
     private String date;
     @SerializedName("timeSlot")
@@ -12,7 +12,7 @@ public class BookingRequest {
     @SerializedName("participants")
     private int participants;
 
-    public BookingRequest(String experienceId, String date, String timeSlot, int participants) {
+    public BookingRequest(int experienceId, String date, String timeSlot, int participants) {
         this.experienceId = experienceId;
         this.date = date;
         this.timeSlot = timeSlot;

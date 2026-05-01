@@ -13,7 +13,10 @@ import com.example.xplorenow_android.data.network.ExperienceResponse;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -57,17 +60,48 @@ public class ExperiencePagingSource extends ListenableFuturePagingSource<Integer
                 categoryParam,
                 filters.getDate(),
                 filters.getMinPrice(),
-                filters.getMaxPrice()
+                filters.getMaxPrice(),
+                filters.getLocation(),
+                filters.getAvailable()
         ).enqueue(new Callback<ExperienceResponse>() {
             @Override
             public void onResponse(@NonNull Call<ExperienceResponse> call, @NonNull Response<ExperienceResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    List<Experience> items = response.body().getItems();
-                    Log.d(TAG, "Loaded " + items.size() + " items");
+                    ExperienceResponse body = response.body();
+                    List<Experience> rawItems = body.getItems();
+                    
+                    List<Experience> items = new ArrayList<>();
+                    Set<String> seen = new HashSet<>();
+                    
+                    if (rawItems != null) {
+                        for (Experience item : rawItems) {
+                            if (item == null || item.getName() == null) continue;
+                            
+                            String uniqueKey = (item.getName().trim() + "|" +
+                                         (item.getDestination() != null ? item.getDestination().trim() : ""))
+                                         .toLowerCase();
+                            
+                            if (seen.add(uniqueKey)) {
+                                items.add(item);
+                            }
+                        }
+                    }
+
+                    Log.d(TAG, "Loaded " + items.size() + " unique items from page " + page);
+                    
+                    Integer nextKey = null;
+                    if (body.getPagination() != null) {
+                        if (body.getPagination().hasNextPage()) {
+                            nextKey = page + 1;
+                        }
+                    } else {
+                        nextKey = (rawItems == null || rawItems.isEmpty()) ? null : page + 1;
+                    }
+
                     future.set(new LoadResult.Page<>(
                             items,
                             page == 1 ? null : page - 1,
-                            items.isEmpty() ? null : page + 1
+                            nextKey
                     ));
                 } else {
                     Log.e(TAG, "API Error: " + response.code());

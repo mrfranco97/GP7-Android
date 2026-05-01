@@ -5,6 +5,7 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,10 +21,12 @@ import androidx.paging.PagingData;
 import androidx.paging.PagingLiveData;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.bumptech.glide.Glide;
 import com.example.xplorenow_android.R;
 import com.example.xplorenow_android.data.local.BookingDao;
 import com.example.xplorenow_android.data.model.Booking;
 import com.example.xplorenow_android.data.model.Experience;
+import com.example.xplorenow_android.data.network.AuthApi;
 import com.example.xplorenow_android.data.network.BookingApi;
 import com.example.xplorenow_android.data.network.BookingCancellationResponse;
 import com.example.xplorenow_android.data.network.ExperienceApi;
@@ -31,7 +34,10 @@ import com.example.xplorenow_android.data.network.ExperienceResponse;
 import com.example.xplorenow_android.data.network.MyBookingsResponse;
 import com.example.xplorenow_android.databinding.FragmentExperienceListBinding;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -45,14 +51,19 @@ import retrofit2.Response;
 @AndroidEntryPoint
 public class ExperienceListFragment extends Fragment implements FilterBottomSheetFragment.FilterListener {
 
+    private static final String TAG = "ExperienceListFragment";
     private FragmentExperienceListBinding binding;
     private ExperienceAdapter adapter;
     private RecommendedAdapter recommendedAdapter;
     private ExperienceFilters filters = new ExperienceFilters();
     private final Executor executor = Executors.newSingleThreadExecutor();
+    private boolean isFetchingRecommendations = false;
 
     @Inject
     ExperienceApi experienceApi;
+
+    @Inject
+    AuthApi authApi;
 
     @Inject
     BookingApi bookingApi;
@@ -92,6 +103,36 @@ public class ExperienceListFragment extends Fragment implements FilterBottomShee
     public void onResume() {
         super.onResume();
         fetchRecommendations();
+        loadProfileImage();
+    }
+
+    private void loadProfileImage() {
+        authApi.getProfilePicture().enqueue(new Callback<okhttp3.ResponseBody>() {
+            @Override
+            public void onResponse(@NonNull Call<okhttp3.ResponseBody> call, @NonNull Response<okhttp3.ResponseBody> response) {
+                if (isAdded() && response.isSuccessful() && response.body() != null) {
+                    try {
+                        byte[] bytes = response.body().bytes();
+                        Glide.with(ExperienceListFragment.this)
+                                .load(bytes)
+                                .circleCrop()
+                                .placeholder(android.R.drawable.ic_menu_gallery)
+                                .into(binding.imageProfileAvatar);
+                    } catch (Exception e) {
+                        binding.imageProfileAvatar.setImageResource(android.R.drawable.ic_menu_gallery);
+                    }
+                } else {
+                    binding.imageProfileAvatar.setImageResource(android.R.drawable.ic_menu_gallery);
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<okhttp3.ResponseBody> call, @NonNull Throwable t) {
+                if (isAdded()) {
+                    binding.imageProfileAvatar.setImageResource(android.R.drawable.ic_menu_gallery);
+                }
+            }
+        });
     }
 
     private void setupNetworkMonitoring() {
@@ -173,22 +214,50 @@ public class ExperienceListFragment extends Fragment implements FilterBottomShee
     }
 
     private void fetchRecommendations() {
+        if (isFetchingRecommendations) return;
+
+        isFetchingRecommendations = true;
         experienceApi.getRecommendedExperiences().enqueue(new Callback<ExperienceResponse>() {
             @Override
             public void onResponse(Call<ExperienceResponse> call, Response<ExperienceResponse> response) {
+                isFetchingRecommendations = false;
                 if (isAdded() && response.isSuccessful() && response.body() != null) {
                     displayRecommendations(response.body().getItems());
                 }
             }
             @Override
-            public void onFailure(Call<ExperienceResponse> call, Throwable t) {}
+            public void onFailure(Call<ExperienceResponse> call, Throwable t) {
+                isFetchingRecommendations = false;
+                Log.e(TAG, "Error fetching recommendations", t);
+            }
         });
     }
 
     private void displayRecommendations(java.util.List<Experience> items) {
         if (items != null && !items.isEmpty()) {
-            binding.sectionRecommended.setVisibility(View.VISIBLE);
-            recommendedAdapter.setItems(items);
+            List<Experience> uniqueItems = new ArrayList<>();
+            Set<String> seenKeys = new HashSet<>();
+
+            for (Experience item : items) {
+                if (item == null || item.getName() == null) continue;
+
+                String key = (item.getName().trim() + "|" +
+                             (item.getDestination() != null ? item.getDestination().trim() : ""))
+                             .toLowerCase();
+
+                if (seenKeys.add(key)) {
+                    uniqueItems.add(item);
+                }
+            }
+
+            Log.d(TAG, "Recommendations - API returned: " + items.size() + ", Unique items: " + uniqueItems.size());
+
+            if (!uniqueItems.isEmpty()) {
+                binding.sectionRecommended.setVisibility(View.VISIBLE);
+                recommendedAdapter.setItems(uniqueItems);
+            } else {
+                binding.sectionRecommended.setVisibility(View.GONE);
+            }
         } else {
             binding.sectionRecommended.setVisibility(View.GONE);
         }
