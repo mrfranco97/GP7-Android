@@ -16,7 +16,9 @@ public interface ExperienceApi {
             @Query("category") String category,
             @Query("date") String date,
             @Query("minPrice") Integer minPrice,
-            @Query("maxPrice") Integer maxPrice
+            @Query("maxPrice") Integer maxPrice,
+            @Query("location") String location,
+            @Query("available") Boolean available
     );
 
     @GET("api/experiences/recommended")
@@ -24,4 +26,7 @@ public interface ExperienceApi {
 
     @GET("api/experiences/{id}")
     Call<Experience> getExperienceDetail(@Path("id") String id);
+
+    @GET("api/experiences/{id}/availability")
+    Call<AvailabilityResponse> getExperienceAvailability(@Path("id") int id);
 }

@@ -13,14 +13,15 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import com.example.xplorenow_android.data.local.BookingDao;
 import com.example.xplorenow_android.data.model.Booking;
 import com.example.xplorenow_android.data.model.BookingRequest;
-import com.example.xplorenow_android.data.model.TimeSlot;
 import com.example.xplorenow_android.data.network.AvailabilityResponse;
 import com.example.xplorenow_android.data.network.BookingApi;
 import com.example.xplorenow_android.data.network.BookingResponse;
+import com.example.xplorenow_android.data.network.ExperienceApi;
 import com.example.xplorenow_android.databinding.LayoutBookingBottomSheetBinding;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.android.material.chip.Chip;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -36,16 +37,21 @@ import retrofit2.Response;
 public class BookingBottomSheetFragment extends BottomSheetDialogFragment {
 
     private LayoutBookingBottomSheetBinding binding;
-    private int experienceId;
+    private int originalExperienceId;
+    private int selectedExperienceId;
     private String selectedDate;
     private String selectedTimeSlot;
     private int participants = 1;
     private int maxAvailableSpots = 0;
     private DateGridAdapter dateAdapter;
+    private List<AvailabilityResponse.AvailabilityDate> availabilityData = new ArrayList<>();
     private final Executor executor = Executors.newSingleThreadExecutor();
 
     @Inject
     BookingApi bookingApi;
+
+    @Inject
+    ExperienceApi experienceApi;
 
     @Inject
     BookingDao bookingDao;
@@ -70,33 +76,93 @@ public class BookingBottomSheetFragment extends BottomSheetDialogFragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         if (getArguments() != null) {
-            experienceId = getArguments().getInt("experienceId");
+            originalExperienceId = getArguments().getInt("experienceId");
+            selectedExperienceId = originalExperienceId;
             selectedDate = getArguments().getString("availableDate");
         }
-
 
         setupDateGrid();
         setupListeners();
         
-        dateAdapter.setStartDate(selectedDate);
-        fetchAvailability(experienceId, selectedDate);
+        fetchAllAvailability(originalExperienceId);
     }
 
-    private void fetchAvailability(int experienceId, String date) {
-        bookingApi.getAvailability(String.valueOf(experienceId), date).enqueue(new Callback<AvailabilityResponse>() {
+    private void fetchAllAvailability(int id) {
+        binding.progressBooking.setVisibility(View.VISIBLE);
+        experienceApi.getExperienceAvailability(id).enqueue(new Callback<AvailabilityResponse>() {
             @Override
             public void onResponse(Call<AvailabilityResponse> call, Response<AvailabilityResponse> response) {
-                if (isAdded() && response.isSuccessful() && response.body() != null) {
-                    displayTimeSlots(response.body().getSlots());
+                if (isAdded()) {
+                    binding.progressBooking.setVisibility(View.GONE);
+                    if (response.isSuccessful() && response.body() != null) {
+                        availabilityData = response.body().getDates();
+                        updateDateGridWithAvailability();
+                    } else {
+                        Toast.makeText(getContext(), "Error al obtener disponibilidad", Toast.LENGTH_SHORT).show();
+                    }
                 }
             }
+
             @Override
-            public void onFailure(Call<AvailabilityResponse> call, Throwable t) {}
+            public void onFailure(Call<AvailabilityResponse> call, Throwable t) {
+                if (isAdded()) {
+                    binding.progressBooking.setVisibility(View.GONE);
+                    Toast.makeText(getContext(), "Error de red", Toast.LENGTH_SHORT).show();
+                }
+            }
         });
     }
 
+    private void updateDateGridWithAvailability() {
+        if (availabilityData == null || availabilityData.isEmpty()) {
+            Toast.makeText(getContext(), "No hay fechas disponibles", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Extraer solo los strings de fecha para el adaptador
+        List<String> dateStrings = new ArrayList<>();
+        for (AvailabilityResponse.AvailabilityDate ad : availabilityData) {
+            if (ad.getDate() != null) {
+                dateStrings.add(ad.getDate());
+            }
+        }
+        
+        dateAdapter.setAvailableDates(dateStrings);
+
+        // Intentar seleccionar la fecha que venía por defecto o la primera disponible
+        if (selectedDate != null) {
+            dateAdapter.selectDate(selectedDate);
+            onDateSelected(selectedDate);
+        } else if (!dateStrings.isEmpty()) {
+            // El setAvailableDates ya notifica la primera fecha, 
+            // pero nos aseguramos de que onDateSelected se llame si no lo hizo
+        }
+    }
+
+    private void onDateSelected(String date) {
+        selectedDate = date;
+        resetBookingSelection();
+        
+        AvailabilityResponse.AvailabilityDate match = null;
+        String cleanTargetDate = date.split("T")[0];
+        
+        for (AvailabilityResponse.AvailabilityDate ad : availabilityData) {
+            if (ad.getDate() != null && ad.getDate().contains(cleanTargetDate)) {
+                match = ad;
+                break;
+            }
+        }
+
+        if (match != null) {
+            selectedExperienceId = match.getExperienceId();
+            displayTimeSlots(match.getSlots());
+        } else {
+            Toast.makeText(getContext(), "No hay turnos para esta fecha", Toast.LENGTH_SHORT).show();
+        }
+    }
+
     private void createBooking(int experienceId, String date, String timeSlot, int participants) {
-        BookingRequest request = new BookingRequest(String.valueOf(experienceId), date, timeSlot, participants);
+        BookingRequest request = new BookingRequest(experienceId, date, timeSlot, participants);
         bookingApi.createBooking(request).enqueue(new Callback<BookingResponse>() {
             @Override
             public void onResponse(Call<BookingResponse> call, Response<BookingResponse> response) {
@@ -134,11 +200,7 @@ public class BookingBottomSheetFragment extends BottomSheetDialogFragment {
     }
 
     private void setupDateGrid() {
-        dateAdapter = new DateGridAdapter(date -> {
-            selectedDate = date;
-            resetBookingSelection();
-            fetchAvailability(experienceId, selectedDate);
-        });
+        dateAdapter = new DateGridAdapter(this::onDateSelected);
         binding.recyclerDates.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
         binding.recyclerDates.setAdapter(dateAdapter);
     }
@@ -162,7 +224,7 @@ public class BookingBottomSheetFragment extends BottomSheetDialogFragment {
 
         binding.btnConfirmBooking.setOnClickListener(v -> {
             if (selectedDate != null && selectedTimeSlot != null) {
-                createBooking(experienceId, selectedDate, selectedTimeSlot, participants);
+                createBooking(selectedExperienceId, selectedDate, selectedTimeSlot, participants);
             }
         });
     }
@@ -179,7 +241,7 @@ public class BookingBottomSheetFragment extends BottomSheetDialogFragment {
         binding.textAvailableSpotsWarning.setVisibility(View.GONE);
     }
 
-    private void displayTimeSlots(List<TimeSlot> slots) {
+    private void displayTimeSlots(List<AvailabilityResponse.TimeSlot> slots) {
         binding.slotChipGroup.removeAllViews();
         if (slots == null || slots.isEmpty()) {
             Toast.makeText(getContext(), "No hay disponibilidad para esta fecha", Toast.LENGTH_SHORT).show();
@@ -189,7 +251,7 @@ public class BookingBottomSheetFragment extends BottomSheetDialogFragment {
         binding.textSlotsLabel.setVisibility(View.VISIBLE);
         binding.slotChipGroup.setVisibility(View.VISIBLE);
 
-        for (TimeSlot slot : slots) {
+        for (AvailabilityResponse.TimeSlot slot : slots) {
             Chip chip = new Chip(getContext());
             chip.setText(slot.getTime() + " (" + slot.getAvailableSpots() + " cupos)");
             chip.setCheckable(true);

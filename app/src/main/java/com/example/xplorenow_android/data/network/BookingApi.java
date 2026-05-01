@@ -13,9 +13,6 @@ import retrofit2.http.Path;
 import retrofit2.http.Query;
 
 public interface BookingApi {
-    @GET("api/experiences/{id}/availability")
-    Call<AvailabilityResponse> getAvailability(@Path("id") String id, @Query("date") String date);
-
     @POST("api/bookings")
     Call<BookingResponse> createBooking(@Body BookingRequest request);
 
