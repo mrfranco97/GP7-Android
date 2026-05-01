@@ -8,7 +8,6 @@ import androidx.navigation.NavController;
 import androidx.navigation.NavOptions;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.NavigationUI;
-import android.view.View;
 
 import com.example.xplorenow_android.R;
 import com.example.xplorenow_android.data.local.AppDatabase;
