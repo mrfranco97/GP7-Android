@@ -4,6 +4,8 @@ import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.DiffUtil;
+import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -13,30 +15,22 @@ import com.example.xplorenow_android.databinding.ItemRecommendedExperienceBindin
 import java.util.ArrayList;
 import java.util.List;
 
-public class RecommendedAdapter extends RecyclerView.Adapter<RecommendedAdapter.RecommendedViewHolder> {
+public class RecommendedAdapter extends ListAdapter<Experience, RecommendedAdapter.RecommendedViewHolder> {
 
     public interface OnRecommendedClickListener {
         void onExperienceClick(Experience experience);
         void onFavoriteClick(Experience experience);
     }
 
-    private final List<Experience> items = new ArrayList<>();
     private final OnRecommendedClickListener listener;
 
     public RecommendedAdapter(OnRecommendedClickListener listener) {
+        super(DIFF_CALLBACK);
         this.listener = listener;
     }
 
-    public List<Experience> getItems() {
-        return items;
-    }
-
-    public void setItems(List<Experience> newItems) {
-        items.clear();
-        if (newItems != null) {
-            items.addAll(newItems);
-        }
-        notifyDataSetChanged();
+    public void setItems(List<Experience> items) {
+        submitList(items == null ? null : new ArrayList<>(items));
     }
 
     @NonNull
@@ -49,13 +43,8 @@ public class RecommendedAdapter extends RecyclerView.Adapter<RecommendedAdapter.
 
     @Override
     public void onBindViewHolder(@NonNull RecommendedViewHolder holder, int position) {
-        Experience item = items.get(position);
+        Experience item = getItem(position);
         holder.bind(item, listener);
-    }
-
-    @Override
-    public int getItemCount() {
-        return items.size();
     }
 
     static class RecommendedViewHolder extends RecyclerView.ViewHolder {
@@ -95,4 +84,18 @@ public class RecommendedAdapter extends RecyclerView.Adapter<RecommendedAdapter.
             });
         }
     }
+
+    private static final DiffUtil.ItemCallback<Experience> DIFF_CALLBACK =
+            new DiffUtil.ItemCallback<Experience>() {
+                @Override
+                public boolean areItemsTheSame(@NonNull Experience oldItem, @NonNull Experience newItem) {
+                    return oldItem.getId() == newItem.getId();
+                }
+
+                @Override
+                public boolean areContentsTheSame(@NonNull Experience oldItem, @NonNull Experience newItem) {
+                    return oldItem.getName().equals(newItem.getName()) &&
+                            oldItem.getDestination().equals(newItem.getDestination());
+                }
+            };
 }

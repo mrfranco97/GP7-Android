@@ -8,6 +8,8 @@ public class ExperienceFilters {
     private String date;
     private Integer minPrice;
     private Integer maxPrice;
+    private String location;
+    private Boolean available;
 
     public ExperienceFilters() {
         this.destination = null;
@@ -15,6 +17,8 @@ public class ExperienceFilters {
         this.date = null;
         this.minPrice = null;
         this.maxPrice = null;
+        this.location = null;
+        this.available = null;
     }
 
     public String getDestination() { return destination; }
@@ -32,6 +36,12 @@ public class ExperienceFilters {
     public Integer getMaxPrice() { return maxPrice; }
     public void setMaxPrice(Integer maxPrice) { this.maxPrice = maxPrice; }
 
+    public String getLocation() { return location; }
+    public void setLocation(String location) { this.location = location; }
+
+    public Boolean getAvailable() { return available; }
+    public void setAvailable(Boolean available) { this.available = available; }
+
     @NonNull
     @Override
     public String toString() {
@@ -41,6 +51,8 @@ public class ExperienceFilters {
                 ", date='" + date + '\'' +
                 ", min=" + minPrice +
                 ", max=" + maxPrice +
+                ", loc='" + location + '\'' +
+                ", avail=" + available +
                 '}';
     }
 
@@ -53,11 +65,13 @@ public class ExperienceFilters {
                 java.util.Objects.equals(category, that.category) &&
                 java.util.Objects.equals(date, that.date) &&
                 java.util.Objects.equals(minPrice, that.minPrice) &&
-                java.util.Objects.equals(maxPrice, that.maxPrice);
+                java.util.Objects.equals(maxPrice, that.maxPrice) &&
+                java.util.Objects.equals(location, that.location) &&
+                java.util.Objects.equals(available, that.available);
     }
 
     @Override
     public int hashCode() {
-        return java.util.Objects.hash(destination, category, date, minPrice, maxPrice);
+        return java.util.Objects.hash(destination, category, date, minPrice, maxPrice, location, available);
     }
 }

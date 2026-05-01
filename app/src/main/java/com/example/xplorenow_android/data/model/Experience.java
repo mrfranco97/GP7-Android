@@ -40,6 +40,9 @@ public class Experience {
     @SerializedName("available_date")
     private String availableDate;
 
+    @SerializedName("available_time_slots")
+    private List<AvailableTimeSlot> availableTimeSlots;
+
     @SerializedName("map")
     private Booking.MapData map;
 
@@ -63,7 +66,18 @@ public class Experience {
     public String getCancellationPolicy() { return cancellationPolicy; }
     public List<String> getGallery() { return gallery; }
     public String getAvailableDate() { return availableDate; }
+    public List<AvailableTimeSlot> getAvailableTimeSlots() { return availableTimeSlots; }
     public Booking.MapData getMap() { return map; }
+
+    public static class AvailableTimeSlot {
+        @SerializedName("time")
+        private String time;
+        @SerializedName("capacity")
+        private int capacity;
+
+        public String getTime() { return time; }
+        public int getCapacity() { return capacity; }
+    }
 
     public boolean isFavorite() {
         return isFavorite;

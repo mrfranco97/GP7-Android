@@ -4,8 +4,6 @@ import com.example.xplorenow_android.data.model.Experience;
 
 import retrofit2.Call;
 import retrofit2.http.GET;
-import retrofit2.http.POST;
-import retrofit2.http.DELETE;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
 
@@ -18,7 +16,9 @@ public interface ExperienceApi {
             @Query("category") String category,
             @Query("date") String date,
             @Query("minPrice") Integer minPrice,
-            @Query("maxPrice") Integer maxPrice
+            @Query("maxPrice") Integer maxPrice,
+            @Query("location") String location,
+            @Query("available") Boolean available
     );
 
     @GET("api/experiences/recommended")
@@ -27,4 +27,6 @@ public interface ExperienceApi {
     @GET("api/experiences/{id}")
     Call<Experience> getExperienceDetail(@Path("id") String id);
 
+    @GET("api/experiences/{id}/availability")
+    Call<AvailabilityResponse> getExperienceAvailability(@Path("id") int id);
 }
