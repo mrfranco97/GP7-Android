@@ -21,16 +21,24 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="${MAPS_API_KEY}" />
 
+        <!-- 👇 TU NUEVA ACTIVITY (NOTICIAS) -->
+        <activity
+            android:name=".ui.news.NewsActivity"
+            android:exported="false" />
+
+        <!-- 👇 MAIN (NO SE TOCA) -->
         <activity
             android:name=".ui.MainActivity"
             android:exported="true"
             android:theme="@style/Theme.XplorenowAndroid">
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
         </activity>
+
     </application>
 
 </manifest>
