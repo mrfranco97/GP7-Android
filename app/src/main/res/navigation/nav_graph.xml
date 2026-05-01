@@ -83,8 +83,13 @@
 
     <fragment
         android:id="@+id/FavoritesFragment"
-        android:name="androidx.fragment.app.Fragment"
-        android:label="Favorites" />
+        android:name="com.example.xplorenow_android.ui.experience.FavoritesFragment"
+        android:label="Favorites"
+        tools:layout="@layout/fragment_favorites" >
+        <action
+            android:id="@+id/action_FavoritesFragment_to_ExperienceDetailFragment"
+            app:destination="@id/ExperienceDetailFragment" />
+    </fragment>
 
     <fragment
         android:id="@+id/ExperienceDetailFragment"

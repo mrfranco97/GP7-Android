@@ -7,6 +7,7 @@ import com.example.xplorenow_android.data.network.AuthApi;
 import com.example.xplorenow_android.data.network.BookingApi;
 import com.example.xplorenow_android.data.network.CatalogApi;
 import com.example.xplorenow_android.data.network.ExperienceApi;
+import com.example.xplorenow_android.data.network.FavoriteApi;
 
 import javax.inject.Singleton;
 
@@ -87,5 +88,11 @@ public class NetworkModule {
     @Singleton
     public BookingApi provideBookingApi(Retrofit retrofit) {
         return retrofit.create(BookingApi.class);
+    }
+
+    @Provides
+    @Singleton
+    public FavoriteApi provideFavoriteApi(Retrofit retrofit) {
+        return retrofit.create(FavoriteApi.class);
     }
 }

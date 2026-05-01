@@ -43,6 +43,9 @@ public class Experience {
     @SerializedName("map")
     private Booking.MapData map;
 
+    @SerializedName("is_favorite")
+    private boolean isFavorite;
+
     public int getId() { return id; }
     public String getName() { return name; }
     public String getDestination() { return destination; }
@@ -61,4 +64,12 @@ public class Experience {
     public List<String> getGallery() { return gallery; }
     public String getAvailableDate() { return availableDate; }
     public Booking.MapData getMap() { return map; }
+
+    public boolean isFavorite() {
+        return isFavorite;
+    }
+
+    public void setFavorite(boolean favorite) {
+        isFavorite = favorite;
+    }
 }

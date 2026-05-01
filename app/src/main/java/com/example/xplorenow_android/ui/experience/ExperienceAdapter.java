@@ -21,6 +21,7 @@ public class ExperienceAdapter extends PagingDataAdapter<Experience, ExperienceA
 
     public interface OnExperienceClickListener {
         void onExperienceClick(Experience experience);
+        void onFavoriteClick(Experience experience);
     }
 
     private final OnExperienceClickListener listener;
@@ -73,13 +74,16 @@ public class ExperienceAdapter extends PagingDataAdapter<Experience, ExperienceA
                     .placeholder(new ColorDrawable(Color.parseColor("#F0F2F5")))
                     .into(binding.imageActivity);
 
+            binding.btnFavorite.setSelected(item.isFavorite());
+            if (item.isFavorite()) {
+                binding.btnFavorite.setColorFilter(Color.BLACK);
+            } else {
+                binding.btnFavorite.setColorFilter(Color.parseColor("#757575"));
+            }
+
             binding.btnFavorite.setOnClickListener(v -> {
-                boolean isSelected = !v.isSelected();
-                v.setSelected(isSelected);
-                if (isSelected) {
-                    binding.btnFavorite.setColorFilter(Color.BLACK);
-                } else {
-                    binding.btnFavorite.setColorFilter(Color.parseColor("#757575")); // text_secondary color
+                if (listener != null) {
+                    listener.onFavoriteClick(item);
                 }
             });
 
@@ -103,7 +107,8 @@ public class ExperienceAdapter extends PagingDataAdapter<Experience, ExperienceA
                     return oldItem.getName().equals(newItem.getName()) &&
                             oldItem.getDestination().equals(newItem.getDestination()) &&
                             oldItem.getPrice() == newItem.getPrice() &&
-                            oldItem.getAvailableSpots() == newItem.getAvailableSpots();
+                            oldItem.getAvailableSpots() == newItem.getAvailableSpots() &&
+                            oldItem.isFavorite() == newItem.isFavorite();
                 }
             };
 }

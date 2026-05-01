@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
 import androidx.paging.LoadState;
 import androidx.paging.Pager;
@@ -30,6 +31,8 @@ import com.example.xplorenow_android.data.network.ExperienceApi;
 import com.example.xplorenow_android.data.network.ExperienceResponse;
 import com.example.xplorenow_android.data.network.MyBookingsResponse;
 import com.example.xplorenow_android.databinding.FragmentExperienceListBinding;
+import com.example.xplorenow_android.data.model.Favorite;
+import com.example.xplorenow_android.data.network.FavoriteApi;
 
 import java.util.List;
 import java.util.concurrent.Executor;
@@ -50,6 +53,7 @@ public class ExperienceListFragment extends Fragment implements FilterBottomShee
     private RecommendedAdapter recommendedAdapter;
     private ExperienceFilters filters = new ExperienceFilters();
     private final Executor executor = Executors.newSingleThreadExecutor();
+    private SharedFavoriteViewModel sharedViewModel;
 
     private static final String PREFS_NAME = "profile_prefs";
     private static final String KEY_IMAGE_URI = "image_uri";
@@ -83,6 +87,28 @@ public class ExperienceListFragment extends Fragment implements FilterBottomShee
         
         loadExperiences();
         preFetchBookings();
+
+        sharedViewModel = new ViewModelProvider(requireActivity()).get(SharedFavoriteViewModel.class);
+        sharedViewModel.getFavoriteUpdate().observe(getViewLifecycleOwner(), update -> {
+            if (adapter != null && adapter.snapshot().getItems() != null) {
+                for (int i = 0; i < adapter.snapshot().getItems().size(); i++) {
+                    Experience exp = adapter.snapshot().getItems().get(i);
+                    if (exp != null && exp.getId() == update.getExperienceId()) {
+                        exp.setFavorite(update.isFavorite());
+                        adapter.notifyItemChanged(i);
+                    }
+                }
+            }
+            if (recommendedAdapter != null && recommendedAdapter.getItems() != null) {
+                for (int i = 0; i < recommendedAdapter.getItems().size(); i++) {
+                    Experience exp = recommendedAdapter.getItems().get(i);
+                    if (exp != null && exp.getId() == update.getExperienceId()) {
+                        exp.setFavorite(update.isFavorite());
+                        recommendedAdapter.notifyItemChanged(i);
+                    }
+                }
+            }
+        });
     }
 
     @Override
@@ -159,7 +185,17 @@ public class ExperienceListFragment extends Fragment implements FilterBottomShee
     }
 
     private void setupRecyclerView() {
-        adapter = new ExperienceAdapter(this::navigateToDetail);
+        adapter = new ExperienceAdapter(new ExperienceAdapter.OnExperienceClickListener() {
+            @Override
+            public void onExperienceClick(Experience experience) {
+                navigateToDetail(experience);
+            }
+
+            @Override
+            public void onFavoriteClick(Experience experience) {
+                toggleFavorite(experience);
+            }
+        });
         binding.recyclerExperiences.setAdapter(adapter);
 
         adapter.addLoadStateListener(loadStates -> {
@@ -170,6 +206,12 @@ public class ExperienceListFragment extends Fragment implements FilterBottomShee
             binding.recyclerExperiences.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
             return null;
         });
+    }
+
+    private void toggleFavorite(Experience experience) {
+        if (sharedViewModel != null) {
+            sharedViewModel.toggleFavorite(experience.getId(), experience.isFavorite());
+        }
     }
 
     private void loadExperiences() {
@@ -207,9 +249,25 @@ public class ExperienceListFragment extends Fragment implements FilterBottomShee
     }
 
     private void setupRecommendedCarousel() {
-        recommendedAdapter = new RecommendedAdapter(this::navigateToDetail);
+        recommendedAdapter = new RecommendedAdapter(new RecommendedAdapter.OnRecommendedClickListener() {
+            @Override
+            public void onExperienceClick(Experience experience) {
+                navigateToDetail(experience);
+            }
+
+            @Override
+            public void onFavoriteClick(Experience experience) {
+                toggleFavoriteFromRecommended(experience);
+            }
+        });
         binding.recyclerRecommended.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
         binding.recyclerRecommended.setAdapter(recommendedAdapter);
+    }
+
+    private void toggleFavoriteFromRecommended(Experience experience) {
+        if (sharedViewModel != null) {
+            sharedViewModel.toggleFavorite(experience.getId(), experience.isFavorite());
+        }
     }
 
     private void navigateToDetail(Experience experience) {

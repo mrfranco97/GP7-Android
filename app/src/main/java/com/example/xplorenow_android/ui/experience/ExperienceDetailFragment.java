@@ -11,6 +11,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
@@ -18,7 +19,9 @@ import com.bumptech.glide.Glide;
 import com.example.xplorenow_android.R;
 import com.example.xplorenow_android.data.model.Booking;
 import com.example.xplorenow_android.data.model.Experience;
+import com.example.xplorenow_android.data.model.Favorite;
 import com.example.xplorenow_android.data.network.ExperienceApi;
+import com.example.xplorenow_android.data.network.FavoriteApi;
 import com.example.xplorenow_android.databinding.FragmentExperienceDetailBinding;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -45,6 +48,7 @@ public class ExperienceDetailFragment extends Fragment implements OnMapReadyCall
     private int experienceId;
     private Experience currentExperience;
     private GoogleMap googleMap;
+    private SharedFavoriteViewModel sharedViewModel;
 
     @Inject
     ExperienceApi experienceApi;
@@ -65,6 +69,7 @@ public class ExperienceDetailFragment extends Fragment implements OnMapReadyCall
         }
 
         setupToolbar();
+        setupFavoriteButton();
         setupBookingButton();
         
         SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager()
@@ -76,10 +81,41 @@ public class ExperienceDetailFragment extends Fragment implements OnMapReadyCall
         if (experienceId != 0) {
             fetchExperienceDetail(experienceId);
         }
+
+        sharedViewModel = new ViewModelProvider(requireActivity()).get(SharedFavoriteViewModel.class);
+        sharedViewModel.getFavoriteUpdate().observe(getViewLifecycleOwner(), update -> {
+            if (currentExperience != null && currentExperience.getId() == update.getExperienceId()) {
+                currentExperience.setFavorite(update.isFavorite());
+                updateFavoriteUI();
+                if (binding != null) {
+                    binding.btnFavorite.setEnabled(true);
+                }
+            }
+        });
     }
 
     private void setupToolbar() {
         binding.toolbar.setNavigationOnClickListener(v -> Navigation.findNavController(v).navigateUp());
+    }
+
+    private void setupFavoriteButton() {
+        binding.btnFavorite.setOnClickListener(v -> {
+            if (currentExperience != null) {
+                binding.btnFavorite.setEnabled(false);
+                sharedViewModel.toggleFavorite(currentExperience.getId(), currentExperience.isFavorite());
+            }
+        });
+    }
+
+    private void updateFavoriteUI() {
+        if (currentExperience == null || binding == null || !isAdded()) return;
+        
+        binding.btnFavorite.setSelected(currentExperience.isFavorite());
+        if (currentExperience.isFavorite()) {
+            binding.btnFavorite.setColorFilter(android.graphics.Color.BLACK);
+        } else {
+            binding.btnFavorite.setColorFilter(android.graphics.Color.parseColor("#757575"));
+        }
     }
 
     private void setupBookingButton() {
@@ -156,6 +192,8 @@ public class ExperienceDetailFragment extends Fragment implements OnMapReadyCall
         Glide.with(this)
                 .load(exp.getImageUrl())
                 .into(binding.imageDetailMain);
+
+        updateFavoriteUI();
                 
         if (exp.getGallery() == null || exp.getGallery().isEmpty()) {
             binding.textGalleryTitle.setVisibility(View.GONE);

@@ -17,6 +17,7 @@ public class RecommendedAdapter extends RecyclerView.Adapter<RecommendedAdapter.
 
     public interface OnRecommendedClickListener {
         void onExperienceClick(Experience experience);
+        void onFavoriteClick(Experience experience);
     }
 
     private final List<Experience> items = new ArrayList<>();
@@ -24,6 +25,10 @@ public class RecommendedAdapter extends RecyclerView.Adapter<RecommendedAdapter.
 
     public RecommendedAdapter(OnRecommendedClickListener listener) {
         this.listener = listener;
+    }
+
+    public List<Experience> getItems() {
+        return items;
     }
 
     public void setItems(List<Experience> newItems) {
@@ -70,13 +75,16 @@ public class RecommendedAdapter extends RecyclerView.Adapter<RecommendedAdapter.
                     .placeholder(android.R.drawable.ic_menu_gallery)
                     .into(binding.imageRecommended);
 
+            binding.btnFavorite.setSelected(item.isFavorite());
+            if (item.isFavorite()) {
+                binding.btnFavorite.setColorFilter(android.graphics.Color.BLACK);
+            } else {
+                binding.btnFavorite.setColorFilter(android.graphics.Color.parseColor("#757575"));
+            }
+
             binding.btnFavorite.setOnClickListener(v -> {
-                boolean isSelected = !v.isSelected();
-                v.setSelected(isSelected);
-                if (isSelected) {
-                    binding.btnFavorite.setColorFilter(android.graphics.Color.BLACK);
-                } else {
-                    binding.btnFavorite.setColorFilter(android.graphics.Color.parseColor("#757575"));
+                if (listener != null) {
+                    listener.onFavoriteClick(item);
                 }
             });
 
