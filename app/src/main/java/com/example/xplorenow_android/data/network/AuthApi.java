@@ -2,11 +2,15 @@ package com.example.xplorenow_android.data.network;
 
 import com.example.xplorenow_android.data.model.User;
 
+import okhttp3.MultipartBody;
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
+import retrofit2.http.Multipart;
 import retrofit2.http.POST;
 import retrofit2.http.PUT;
+import retrofit2.http.Part;
 
 public interface AuthApi {
 
@@ -30,4 +34,11 @@ public interface AuthApi {
 
     @PUT("api/auth/me")
     Call<User> updateUserProfile(@Body User user);
+
+    @Multipart
+    @POST("api/auth/me/profile-picture")
+    Call<ResponseBody> uploadProfilePicture(@Part MultipartBody.Part profilePicture);
+
+    @GET("api/auth/me/profile-picture")
+    Call<ResponseBody> getProfilePicture();
 }

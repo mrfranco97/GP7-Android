@@ -1,6 +1,7 @@
 package com.example.xplorenow_android.ui;
 
 import android.os.Bundle;
+import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.navigation.NavController;
@@ -10,6 +11,7 @@ import androidx.navigation.ui.NavigationUI;
 import android.view.View;
 
 import com.example.xplorenow_android.R;
+import com.example.xplorenow_android.data.local.AppDatabase;
 import com.example.xplorenow_android.databinding.ActivityMainBinding;
 import com.example.xplorenow_android.di.AuthEventBus;
 
@@ -22,6 +24,9 @@ public class MainActivity extends AppCompatActivity {
 
     @Inject
     AuthEventBus authEventBus;
+
+    @Inject
+    AppDatabase db;
 
     private ActivityMainBinding binding;
 
@@ -55,6 +60,12 @@ public class MainActivity extends AppCompatActivity {
                                 .setPopUpTo(R.id.nav_graph, true)
                                 .build()
                 );
+            }
+        });
+
+        db.networkStatusDao().isOnline().observe(this, isOnline -> {
+            if (isOnline != null) {
+                binding.textNoConnection.setVisibility(isOnline ? View.GONE : View.VISIBLE);
             }
         });
     }

@@ -25,6 +25,7 @@ import com.example.xplorenow_android.R;
 import com.example.xplorenow_android.data.local.BookingDao;
 import com.example.xplorenow_android.data.model.Booking;
 import com.example.xplorenow_android.data.model.Experience;
+import com.example.xplorenow_android.data.network.AuthApi;
 import com.example.xplorenow_android.data.network.BookingApi;
 import com.example.xplorenow_android.data.network.BookingCancellationResponse;
 import com.example.xplorenow_android.data.network.ExperienceApi;
@@ -55,11 +56,11 @@ public class ExperienceListFragment extends Fragment implements FilterBottomShee
     private final Executor executor = Executors.newSingleThreadExecutor();
     private SharedFavoriteViewModel sharedViewModel;
 
-    private static final String PREFS_NAME = "profile_prefs";
-    private static final String KEY_IMAGE_URI = "image_uri";
-
     @Inject
     ExperienceApi experienceApi;
+
+    @Inject
+    AuthApi authApi;
 
     @Inject
     BookingApi bookingApi;
@@ -119,17 +120,32 @@ public class ExperienceListFragment extends Fragment implements FilterBottomShee
     }
 
     private void loadProfileImage() {
-        android.content.SharedPreferences prefs = requireContext()
-                .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        String uriString = prefs.getString(KEY_IMAGE_URI, null);
-        if (uriString != null) {
-            Glide.with(this)
-                    .load(android.net.Uri.parse(uriString))
-                    .circleCrop()
-                    .into(binding.imageProfileAvatar);
-        } else {
-            binding.imageProfileAvatar.setImageResource(android.R.drawable.ic_menu_gallery);
-        }
+        authApi.getProfilePicture().enqueue(new Callback<okhttp3.ResponseBody>() {
+            @Override
+            public void onResponse(@NonNull Call<okhttp3.ResponseBody> call, @NonNull Response<okhttp3.ResponseBody> response) {
+                if (isAdded() && response.isSuccessful() && response.body() != null) {
+                    try {
+                        byte[] bytes = response.body().bytes();
+                        Glide.with(ExperienceListFragment.this)
+                                .load(bytes)
+                                .circleCrop()
+                                .placeholder(android.R.drawable.ic_menu_gallery)
+                                .into(binding.imageProfileAvatar);
+                    } catch (Exception e) {
+                        binding.imageProfileAvatar.setImageResource(android.R.drawable.ic_menu_gallery);
+                    }
+                } else {
+                    binding.imageProfileAvatar.setImageResource(android.R.drawable.ic_menu_gallery);
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<okhttp3.ResponseBody> call, @NonNull Throwable t) {
+                if (isAdded()) {
+                    binding.imageProfileAvatar.setImageResource(android.R.drawable.ic_menu_gallery);
+                }
+            }
+        });
     }
 
     private void setupNetworkMonitoring() {
