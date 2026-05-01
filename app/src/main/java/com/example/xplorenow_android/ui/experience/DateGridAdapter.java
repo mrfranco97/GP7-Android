@@ -12,7 +12,6 @@ import com.example.xplorenow_android.databinding.ItemDateGridBinding;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -32,33 +31,40 @@ public class DateGridAdapter extends RecyclerView.Adapter<DateGridAdapter.DateVi
 
     public DateGridAdapter(OnDateClickListener listener) {
         this.listener = listener;
-        generateDates(null);
     }
 
-    public void setStartDate(String startDateStr) {
-        generateDates(startDateStr);
-        selectedPosition = 0; // Por defecto seleccionamos la primera disponible
-        notifyDataSetChanged();
-    }
-
-    private void generateDates(String startDateStr) {
+    public void setAvailableDates(List<String> availableDates) {
         dateList.clear();
-        Calendar calendar = Calendar.getInstance();
+        if (availableDates != null) {
+            for (String dateStr : availableDates) {
+                try {
+                    String cleanDate = dateStr.split("T")[0];
+                    Date date = apiFormat.parse(cleanDate);
+                    if (date != null) {
+                        if (!containsDate(date)) {
+                            dateList.add(date);
+                        }
+                    }
+                } catch (Exception ignored) {}
+            }
+        }
         
-        if (startDateStr != null) {
-            try {
-                String cleanDate = startDateStr.split("T")[0];
-                Date startDate = apiFormat.parse(cleanDate);
-                if (startDate != null) {
-                    calendar.setTime(startDate);
-                }
-            } catch (Exception ignored) {}
+        dateList.sort(Date::compareTo);
+        
+        selectedPosition = dateList.isEmpty() ? -1 : 0;
+        notifyDataSetChanged();
+        
+        if (selectedPosition != -1 && listener != null) {
+            listener.onDateClick(apiFormat.format(dateList.get(0)));
         }
+    }
 
-        for (int i = 0; i < 14; i++) {
-            dateList.add(calendar.getTime());
-            calendar.add(Calendar.DAY_OF_YEAR, 1);
+    private boolean containsDate(Date date) {
+        String formatted = apiFormat.format(date);
+        for (Date d : dateList) {
+            if (apiFormat.format(d).equals(formatted)) return true;
         }
+        return false;
     }
 
     public void selectDate(String dateStr) {
@@ -71,13 +77,6 @@ public class DateGridAdapter extends RecyclerView.Adapter<DateGridAdapter.DateVi
                 break;
             }
         }
-    }
-
-    public String getSelectedDate() {
-        if (selectedPosition >= 0 && selectedPosition < dateList.size()) {
-            return apiFormat.format(dateList.get(selectedPosition));
-        }
-        return null;
     }
 
     @NonNull
@@ -104,10 +103,13 @@ public class DateGridAdapter extends RecyclerView.Adapter<DateGridAdapter.DateVi
                 holder.itemView.getContext().getColor(R.color.surface));
 
         holder.itemView.setOnClickListener(v -> {
-            selectedPosition = holder.getBindingAdapterPosition();
-            notifyDataSetChanged();
-            if (listener != null) {
-                listener.onDateClick(apiFormat.format(date));
+            int currentPos = holder.getBindingAdapterPosition();
+            if (currentPos != RecyclerView.NO_POSITION) {
+                selectedPosition = currentPos;
+                notifyDataSetChanged();
+                if (listener != null) {
+                    listener.onDateClick(apiFormat.format(dateList.get(selectedPosition)));
+                }
             }
         });
     }
