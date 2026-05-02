@@ -37,38 +37,6 @@
             app:layout_constraintStart_toEndOf="@id/btn_back"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <LinearLayout
-            android:id="@+id/layout_profile_actions"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:gravity="end"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@id/text_profile_title">
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_my_bookings"
-                style="@style/Widget.Material3.Button.TextButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Mis reservas"
-                android:textColor="@color/accent"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"
-                app:icon="@android:drawable/ic_menu_agenda" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_booking_history"
-                style="@style/Widget.Material3.Button.TextButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Historial"
-                android:textColor="@color/accent"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"
-                app:icon="@android:drawable/ic_menu_recent_history" />
-        </LinearLayout>
-
         <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/image_profile"
             android:layout_width="120dp"
@@ -78,10 +46,58 @@
             android:src="@android:drawable/ic_menu_gallery"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/layout_profile_actions"
+            app:layout_constraintTop_toBottomOf="@id/text_profile_title"
             app:shapeAppearanceOverlay="@style/CircleImageView"
             app:strokeColor="@color/divider"
             app:strokeWidth="2dp" />
+
+        <TextView
+            android:id="@+id/text_bookings_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:text="Mis Reservas"
+            android:textColor="@color/text_main"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/image_profile" />
+
+        <View
+            android:id="@+id/divider_bookings"
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_marginTop="8dp"
+            android:background="@color/divider"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/text_bookings_title" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_my_bookings"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="Mis reservas"
+            android:textAllCaps="false"
+            app:icon="@android:drawable/ic_menu_agenda"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/divider_bookings" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_booking_history"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="Historial de reservas"
+            android:textAllCaps="false"
+            app:icon="@android:drawable/ic_menu_recent_history"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/btn_my_bookings" />
 
         <TextView
             android:id="@+id/text_personal_info_title"
@@ -93,7 +109,7 @@
             android:textSize="18sp"
             android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/image_profile" />
+            app:layout_constraintTop_toBottomOf="@id/btn_booking_history" />
 
         <View
             android:id="@+id/divider_personal_info"
