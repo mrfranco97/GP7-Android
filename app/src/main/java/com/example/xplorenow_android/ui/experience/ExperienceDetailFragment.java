@@ -11,6 +11,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
@@ -18,7 +19,9 @@ import com.bumptech.glide.Glide;
 import com.example.xplorenow_android.R;
 import com.example.xplorenow_android.data.model.Booking;
 import com.example.xplorenow_android.data.model.Experience;
+import com.example.xplorenow_android.data.model.Favorite;
 import com.example.xplorenow_android.data.network.ExperienceApi;
+import com.example.xplorenow_android.data.network.FavoriteApi;
 import com.example.xplorenow_android.databinding.FragmentExperienceDetailBinding;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -47,6 +50,9 @@ public class ExperienceDetailFragment extends Fragment implements OnMapReadyCall
     private GoogleMap googleMap;
 
     @Inject
+    FavoriteApi favoriteApi;
+    
+    @Inject
     ExperienceApi experienceApi;
 
     @Nullable
@@ -65,6 +71,7 @@ public class ExperienceDetailFragment extends Fragment implements OnMapReadyCall
         }
 
         setupToolbar();
+        setupFavoriteButton();
         setupBookingButton();
         
         SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager()
@@ -80,6 +87,78 @@ public class ExperienceDetailFragment extends Fragment implements OnMapReadyCall
 
     private void setupToolbar() {
         binding.toolbar.setNavigationOnClickListener(v -> Navigation.findNavController(v).navigateUp());
+    }
+
+    private void setupFavoriteButton() {
+        binding.btnFavorite.setOnClickListener(v -> {
+            if (currentExperience != null) {
+                boolean isCurrentlyFavorite = currentExperience.isFavorite();
+                boolean newFavoriteStatus = !isCurrentlyFavorite;
+
+                // Cambio local inmediato (Optimistic UI)
+                currentExperience.setFavorite(newFavoriteStatus);
+                updateFavoriteUI();
+
+                if (isCurrentlyFavorite) {
+                    favoriteApi.removeFavorite(currentExperience.getId()).enqueue(new Callback<Void>() {
+                        @Override
+                        public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
+                            if (binding == null) return;
+                            if (response.isSuccessful()) {
+                                Toast.makeText(getContext(), R.string.msg_favorite_removed, Toast.LENGTH_SHORT).show();
+                            } else {
+                                // Revertir si falla
+                                currentExperience.setFavorite(true);
+                                updateFavoriteUI();
+                                Toast.makeText(getContext(), "Error al eliminar de favoritos", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(@NonNull Call<Void> call, @NonNull Throwable t) {
+                            if (binding == null) return;
+                            currentExperience.setFavorite(true);
+                            updateFavoriteUI();
+                            Toast.makeText(getContext(), "Error de conexión", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                } else {
+                    favoriteApi.addFavorite(currentExperience.getId()).enqueue(new Callback<Favorite>() {
+                        @Override
+                        public void onResponse(@NonNull Call<Favorite> call, @NonNull Response<Favorite> response) {
+                            if (binding == null) return;
+                            if (response.isSuccessful()) {
+                                Toast.makeText(getContext(), R.string.msg_favorite_added, Toast.LENGTH_SHORT).show();
+                            } else {
+                                // Revertir si falla
+                                currentExperience.setFavorite(false);
+                                updateFavoriteUI();
+                                Toast.makeText(getContext(), "Error al añadir a favoritos", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(@NonNull Call<Favorite> call, @NonNull Throwable t) {
+                            if (binding == null) return;
+                            currentExperience.setFavorite(false);
+                            updateFavoriteUI();
+                            Toast.makeText(getContext(), "Error de conexión", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+            }
+        });
+    }
+
+    private void updateFavoriteUI() {
+        if (currentExperience == null || binding == null || !isAdded()) return;
+        
+        binding.btnFavorite.setSelected(currentExperience.isFavorite());
+        if (currentExperience.isFavorite()) {
+            binding.btnFavorite.setColorFilter(android.graphics.Color.BLACK);
+        } else {
+            binding.btnFavorite.setColorFilter(android.graphics.Color.parseColor("#757575"));
+        }
     }
 
     private void setupBookingButton() {
@@ -156,6 +235,8 @@ public class ExperienceDetailFragment extends Fragment implements OnMapReadyCall
         Glide.with(this)
                 .load(exp.getImageUrl())
                 .into(binding.imageDetailMain);
+
+        updateFavoriteUI();
                 
         if (exp.getGallery() == null || exp.getGallery().isEmpty()) {
             binding.textGalleryTitle.setVisibility(View.GONE);

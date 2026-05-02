@@ -16,6 +16,8 @@ public class User {
     private String role;
     @SerializedName("preferences")
     private UserPreferences preferences;
+    @SerializedName("avatar_url")
+    private String avatarUrl;
 
     public User(String name, String email, String phone) {
         this.name = name;

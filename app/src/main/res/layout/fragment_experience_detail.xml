@@ -35,6 +35,19 @@
                 app:layout_collapseMode="pin"
                 app:navigationIcon="@drawable/ic_back" />
 
+            <ImageButton
+                android:id="@+id/btn_favorite"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_gravity="top|end"
+                android:layout_margin="12dp"
+                android:background="@drawable/bg_circle_button"
+                android:contentDescription="@string/favorite"
+                android:elevation="4dp"
+                android:padding="8dp"
+                android:src="@drawable/ic_heart"
+                app:tint="@color/text_secondary" />
+
         </com.google.android.material.appbar.CollapsingToolbarLayout>
     </com.google.android.material.appbar.AppBarLayout>
 
