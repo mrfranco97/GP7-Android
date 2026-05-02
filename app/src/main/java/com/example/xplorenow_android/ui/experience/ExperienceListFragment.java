@@ -1,5 +1,6 @@
 package com.example.xplorenow_android.ui.experience;
-
+import android.content.Intent;
+import com.example.xplorenow_android.ui.news.NewsActivity;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.Network;
@@ -93,12 +94,18 @@ public class ExperienceListFragment extends Fragment implements FilterBottomShee
         setupRecommendedCarousel();
         setupFilters();
         setupProfileNavigation();
+        setupNewsNavigation();
         setupNetworkMonitoring();
         
         loadExperiences();
         preFetchBookings();
     }
-
+    private void setupNewsNavigation() {
+        binding.btnNews.setOnClickListener(v ->  {
+            Intent intent = new Intent(requireContext(), NewsActivity.class);
+            startActivity(intent);
+        });
+    }
     @Override
     public void onResume() {
         super.onResume();
