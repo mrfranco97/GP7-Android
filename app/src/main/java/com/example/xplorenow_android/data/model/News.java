@@ -1,32 +1,57 @@
 package com.example.xplorenow_android.data.model;
 
+import com.google.gson.annotations.SerializedName;
+
 public class News {
 
-    private int id;
+    @SerializedName("id")
+    private String id;
+    @SerializedName("type")
+    private String type;
+    @SerializedName("title")
     private String title;
+    @SerializedName("summary")
+    private String summary;
+    @SerializedName("description")
     private String description;
-    private int imageRes;
+    @SerializedName("image_url")
+    private String imageUrl;
+    @SerializedName("published_at")
+    private String publishedAt;
 
-    public News(int id, String title, String description, int imageRes) {
+    public News(String id, String title, String summary, String description, String imageUrl) {
         this.id = id;
         this.title = title;
+        this.summary = summary;
         this.description = description;
-        this.imageRes = imageRes;
+        this.imageUrl = imageUrl;
     }
 
-    public int getId() {
+    public String getId() {
         return id;
+    }
+
+    public String getType() {
+        return type;
     }
 
     public String getTitle() {
         return title;
     }
 
+    public String getSummary() {
+        return summary;
+    }
+
     public String getDescription() {
         return description;
     }
 
-    public int getImageRes() {
-        return imageRes;
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public String getPublishedAt() {
+        return publishedAt;
     }
 }

@@ -1,6 +1,5 @@
 package com.example.xplorenow_android.ui.news;
 
-import androidx.appcompat.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -8,8 +7,10 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.xplorenow_android.R;
 import com.example.xplorenow_android.data.model.News;
 
@@ -21,6 +22,14 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.NewsViewHolder
 
     public NewsAdapter(List<News> newsList) {
         this.newsList = newsList;
+    }
+
+    public void setItems(List<News> items) {
+        newsList.clear();
+        if (items != null) {
+            newsList.addAll(items);
+        }
+        notifyDataSetChanged();
     }
 
     public static class NewsViewHolder extends RecyclerView.ViewHolder {
@@ -50,13 +59,18 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.NewsViewHolder
         News news = newsList.get(position);
 
         holder.title.setText(news.getTitle());
-        holder.desc.setText(news.getDescription());
-        holder.image.setImageResource(news.getImageRes());
+        holder.desc.setText(news.getSummary() != null ? news.getSummary() : news.getDescription());
+        Glide.with(holder.image.getContext())
+                .load(news.getImageUrl())
+                .placeholder(R.drawable.news_promo)
+                .error(R.drawable.news_promo)
+                .centerCrop()
+                .into(holder.image);
 
         holder.itemView.setOnClickListener(v -> {
             new AlertDialog.Builder(holder.itemView.getContext())
                     .setTitle(news.getTitle())
-                    .setMessage(news.getDescription() + "\n\nDetalle completo de la noticia.")
+                    .setMessage(news.getDescription())
                     .setPositiveButton("Cerrar", null)
                     .show();
         });
