@@ -48,8 +48,10 @@ public class ExperienceDetailFragment extends Fragment implements OnMapReadyCall
     private int experienceId;
     private Experience currentExperience;
     private GoogleMap googleMap;
-    private SharedFavoriteViewModel sharedViewModel;
 
+    @Inject
+    FavoriteApi favoriteApi;
+    
     @Inject
     ExperienceApi experienceApi;
 
@@ -81,17 +83,6 @@ public class ExperienceDetailFragment extends Fragment implements OnMapReadyCall
         if (experienceId != 0) {
             fetchExperienceDetail(experienceId);
         }
-
-        sharedViewModel = new ViewModelProvider(requireActivity()).get(SharedFavoriteViewModel.class);
-        sharedViewModel.getFavoriteUpdate().observe(getViewLifecycleOwner(), update -> {
-            if (currentExperience != null && currentExperience.getId() == update.getExperienceId()) {
-                currentExperience.setFavorite(update.isFavorite());
-                updateFavoriteUI();
-                if (binding != null) {
-                    binding.btnFavorite.setEnabled(true);
-                }
-            }
-        });
     }
 
     private void setupToolbar() {
@@ -101,8 +92,60 @@ public class ExperienceDetailFragment extends Fragment implements OnMapReadyCall
     private void setupFavoriteButton() {
         binding.btnFavorite.setOnClickListener(v -> {
             if (currentExperience != null) {
-                binding.btnFavorite.setEnabled(false);
-                sharedViewModel.toggleFavorite(currentExperience.getId(), currentExperience.isFavorite());
+                boolean isCurrentlyFavorite = currentExperience.isFavorite();
+                boolean newFavoriteStatus = !isCurrentlyFavorite;
+
+                // Cambio local inmediato (Optimistic UI)
+                currentExperience.setFavorite(newFavoriteStatus);
+                updateFavoriteUI();
+
+                if (isCurrentlyFavorite) {
+                    favoriteApi.removeFavorite(currentExperience.getId()).enqueue(new Callback<Void>() {
+                        @Override
+                        public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
+                            if (binding == null) return;
+                            if (response.isSuccessful()) {
+                                Toast.makeText(getContext(), R.string.msg_favorite_removed, Toast.LENGTH_SHORT).show();
+                            } else {
+                                // Revertir si falla
+                                currentExperience.setFavorite(true);
+                                updateFavoriteUI();
+                                Toast.makeText(getContext(), "Error al eliminar de favoritos", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(@NonNull Call<Void> call, @NonNull Throwable t) {
+                            if (binding == null) return;
+                            currentExperience.setFavorite(true);
+                            updateFavoriteUI();
+                            Toast.makeText(getContext(), "Error de conexión", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                } else {
+                    favoriteApi.addFavorite(currentExperience.getId()).enqueue(new Callback<Favorite>() {
+                        @Override
+                        public void onResponse(@NonNull Call<Favorite> call, @NonNull Response<Favorite> response) {
+                            if (binding == null) return;
+                            if (response.isSuccessful()) {
+                                Toast.makeText(getContext(), R.string.msg_favorite_added, Toast.LENGTH_SHORT).show();
+                            } else {
+                                // Revertir si falla
+                                currentExperience.setFavorite(false);
+                                updateFavoriteUI();
+                                Toast.makeText(getContext(), "Error al añadir a favoritos", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(@NonNull Call<Favorite> call, @NonNull Throwable t) {
+                            if (binding == null) return;
+                            currentExperience.setFavorite(false);
+                            updateFavoriteUI();
+                            Toast.makeText(getContext(), "Error de conexión", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
             }
         });
     }

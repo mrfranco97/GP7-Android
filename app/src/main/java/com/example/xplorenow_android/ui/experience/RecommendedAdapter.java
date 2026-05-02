@@ -95,7 +95,8 @@ public class RecommendedAdapter extends ListAdapter<Experience, RecommendedAdapt
                 @Override
                 public boolean areContentsTheSame(@NonNull Experience oldItem, @NonNull Experience newItem) {
                     return oldItem.getName().equals(newItem.getName()) &&
-                            oldItem.getDestination().equals(newItem.getDestination());
+                            oldItem.getDestination().equals(newItem.getDestination()) &&
+                            oldItem.isFavorite() == newItem.isFavorite();
                 }
             };
 }

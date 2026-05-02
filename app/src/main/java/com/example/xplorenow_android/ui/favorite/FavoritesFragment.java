@@ -27,12 +27,13 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+import android.widget.Toast;
+
 @AndroidEntryPoint
 public class FavoritesFragment extends Fragment {
 
     private FragmentFavoritesBinding binding;
     private FavoritesAdapter adapter;
-    private SharedFavoriteViewModel sharedViewModel;
 
     @Inject
     FavoriteApi favoriteApi;
@@ -48,14 +49,12 @@ public class FavoritesFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         setupRecyclerView();
-        fetchFavorites();
+    }
 
-        sharedViewModel = new ViewModelProvider(requireActivity()).get(SharedFavoriteViewModel.class);
-        sharedViewModel.getFavoriteUpdate().observe(getViewLifecycleOwner(), update -> {
-            if (!update.isFavorite()) {
-                fetchFavorites(); // Refrescar la lista si se eliminó de favoritos
-            }
-        });
+    @Override
+    public void onResume() {
+        super.onResume();
+        fetchFavorites();
     }
 
     private void setupRecyclerView() {
@@ -105,15 +104,34 @@ public class FavoritesFragment extends Fragment {
     }
 
     private void removeFromFavorites(Favorite favorite) {
-        if (sharedViewModel != null && favorite.getActivity() != null) {
-            // Llamamos al viewModel con el ID de la experiencia
-            sharedViewModel.toggleFavorite(favorite.getActivity().getId(), true);
+        if (favorite.getActivity() != null) {
+            favoriteApi.removeFavorite(favorite.getActivity().getId()).enqueue(new Callback<Void>() {
+                @Override
+                public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
+                    if (response.isSuccessful()) {
+                        Toast.makeText(getContext(), R.string.msg_favorite_removed, Toast.LENGTH_SHORT).show();
+                        fetchFavorites();
+                    } else {
+                        Toast.makeText(getContext(), "Error al eliminar de favoritos", Toast.LENGTH_SHORT).show();
+                    }
+                }
+
+                @Override
+                public void onFailure(@NonNull Call<Void> call, @NonNull Throwable t) {
+                    Toast.makeText(getContext(), "Error de conexión", Toast.LENGTH_SHORT).show();
+                }
+            });
         }
     }
 
     private void navigateToDetail(Favorite favorite) {
-        if (sharedViewModel != null && favorite.getNovelty() != null && favorite.getNovelty().hasNews()) {
-            sharedViewModel.markFavoriteSeen(favorite.getActivity().getId());
+        if (favorite.getNovelty() != null && favorite.getNovelty().hasNews()) {
+            favoriteApi.markFavoriteSeen(favorite.getActivity().getId()).enqueue(new Callback<Favorite>() {
+                @Override
+                public void onResponse(@NonNull Call<Favorite> call, @NonNull Response<Favorite> response) {}
+                @Override
+                public void onFailure(@NonNull Call<Favorite> call, @NonNull Throwable t) {}
+            });
         }
 
         Bundle args = new Bundle();

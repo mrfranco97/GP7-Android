@@ -79,8 +79,11 @@
     <string name="history_label_activity">Actividad:</string>
     <string name="my_bookings_title">Mis Reservas</string>
     <string name="favorite">Favoritos</string>
+    <string name="badge_novelty_changes">¡Hubo cambios!</string>
     <string name="favorites_empty_title">Aún no tienes favoritos</string>
     <string name="favorites_empty_desc">Explora experiencias y marca las que más te gusten.</string>
+    <string name="msg_favorite_added">Agregado a favoritos</string>
+    <string name="msg_favorite_removed">Eliminado de favoritos</string>
 
     <string name="previous">Volver</string>
     <string name="lorem_ipsum">Los detalles de la experiencia se mostrarán aquí.</string>

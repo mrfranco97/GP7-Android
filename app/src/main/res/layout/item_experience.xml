@@ -50,7 +50,7 @@
                 android:background="@drawable/bg_badge_novelty"
                 android:paddingHorizontal="8dp"
                 android:paddingVertical="4dp"
-                android:text="¡Cambios!"
+                android:text="@string/badge_novelty_changes"
                 android:textColor="@android:color/white"
                 android:textSize="12sp"
                 android:textStyle="bold"

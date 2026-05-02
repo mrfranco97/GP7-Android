@@ -8,6 +8,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -60,7 +61,9 @@ public class ExperienceListFragment extends Fragment implements FilterBottomShee
     private ExperienceFilters filters = new ExperienceFilters();
     private final Executor executor = Executors.newSingleThreadExecutor();
     private boolean isFetchingRecommendations = false;
-    private SharedFavoriteViewModel sharedViewModel;
+    
+    @Inject
+    FavoriteApi favoriteApi;
 
     @Inject
     ExperienceApi experienceApi;
@@ -94,33 +97,14 @@ public class ExperienceListFragment extends Fragment implements FilterBottomShee
         
         loadExperiences();
         preFetchBookings();
-
-        sharedViewModel = new ViewModelProvider(requireActivity()).get(SharedFavoriteViewModel.class);
-        sharedViewModel.getFavoriteUpdate().observe(getViewLifecycleOwner(), update -> {
-            if (adapter != null && adapter.snapshot().getItems() != null) {
-                for (int i = 0; i < adapter.snapshot().getItems().size(); i++) {
-                    Experience exp = adapter.snapshot().getItems().get(i);
-                    if (exp != null && exp.getId() == update.getExperienceId()) {
-                        exp.setFavorite(update.isFavorite());
-                        adapter.notifyItemChanged(i);
-                    }
-                }
-            }
-            if (recommendedAdapter != null && recommendedAdapter.getItems() != null) {
-                for (int i = 0; i < recommendedAdapter.getItems().size(); i++) {
-                    Experience exp = recommendedAdapter.getItems().get(i);
-                    if (exp != null && exp.getId() == update.getExperienceId()) {
-                        exp.setFavorite(update.isFavorite());
-                        recommendedAdapter.notifyItemChanged(i);
-                    }
-                }
-            }
-        });
     }
 
     @Override
     public void onResume() {
         super.onResume();
+        if (adapter != null) {
+            adapter.refresh();
+        }
         fetchRecommendations();
         loadProfileImage();
     }
@@ -231,8 +215,52 @@ public class ExperienceListFragment extends Fragment implements FilterBottomShee
     }
 
     private void toggleFavorite(Experience experience) {
-        if (sharedViewModel != null) {
-            sharedViewModel.toggleFavorite(experience.getId(), experience.isFavorite());
+        boolean currentStatus = experience.isFavorite();
+        boolean newStatus = !currentStatus;
+        
+        // Cambio local inmediato (Optimistic UI)
+        experience.setFavorite(newStatus);
+        adapter.notifyDataSetChanged();
+
+        if (currentStatus) {
+            favoriteApi.removeFavorite(experience.getId()).enqueue(new Callback<Void>() {
+                @Override
+                public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
+                    if (response.isSuccessful()) {
+                        Toast.makeText(getContext(), R.string.msg_favorite_removed, Toast.LENGTH_SHORT).show();
+                    } else {
+                        // Revertir si falla
+                        experience.setFavorite(currentStatus);
+                        adapter.notifyDataSetChanged();
+                        Toast.makeText(getContext(), "Error al eliminar de favoritos", Toast.LENGTH_SHORT).show();
+                    }
+                }
+                @Override
+                public void onFailure(@NonNull Call<Void> call, @NonNull Throwable t) {
+                    experience.setFavorite(currentStatus);
+                    adapter.notifyDataSetChanged();
+                    Toast.makeText(getContext(), "Error de conexión", Toast.LENGTH_SHORT).show();
+                }
+            });
+        } else {
+            favoriteApi.addFavorite(experience.getId()).enqueue(new Callback<Favorite>() {
+                @Override
+                public void onResponse(@NonNull Call<Favorite> call, @NonNull Response<Favorite> response) {
+                    if (response.isSuccessful()) {
+                        Toast.makeText(getContext(), R.string.msg_favorite_added, Toast.LENGTH_SHORT).show();
+                    } else {
+                        experience.setFavorite(currentStatus);
+                        adapter.notifyDataSetChanged();
+                        Toast.makeText(getContext(), "Error al añadir a favoritos", Toast.LENGTH_SHORT).show();
+                    }
+                }
+                @Override
+                public void onFailure(@NonNull Call<Favorite> call, @NonNull Throwable t) {
+                    experience.setFavorite(currentStatus);
+                    adapter.notifyDataSetChanged();
+                    Toast.makeText(getContext(), "Error de conexión", Toast.LENGTH_SHORT).show();
+                }
+            });
         }
     }
 
@@ -315,8 +343,51 @@ public class ExperienceListFragment extends Fragment implements FilterBottomShee
     }
 
     private void toggleFavoriteFromRecommended(Experience experience) {
-        if (sharedViewModel != null) {
-            sharedViewModel.toggleFavorite(experience.getId(), experience.isFavorite());
+        boolean currentStatus = experience.isFavorite();
+        boolean newStatus = !currentStatus;
+
+        // Cambio local inmediato
+        experience.setFavorite(newStatus);
+        recommendedAdapter.notifyDataSetChanged();
+
+        if (currentStatus) {
+            favoriteApi.removeFavorite(experience.getId()).enqueue(new Callback<Void>() {
+                @Override
+                public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
+                    if (response.isSuccessful()) {
+                        Toast.makeText(getContext(), R.string.msg_favorite_removed, Toast.LENGTH_SHORT).show();
+                    } else {
+                        experience.setFavorite(currentStatus);
+                        recommendedAdapter.notifyDataSetChanged();
+                        Toast.makeText(getContext(), "Error al eliminar de favoritos", Toast.LENGTH_SHORT).show();
+                    }
+                }
+                @Override
+                public void onFailure(@NonNull Call<Void> call, @NonNull Throwable t) {
+                    experience.setFavorite(currentStatus);
+                    recommendedAdapter.notifyDataSetChanged();
+                    Toast.makeText(getContext(), "Error de conexión", Toast.LENGTH_SHORT).show();
+                }
+            });
+        } else {
+            favoriteApi.addFavorite(experience.getId()).enqueue(new Callback<Favorite>() {
+                @Override
+                public void onResponse(@NonNull Call<Favorite> call, @NonNull Response<Favorite> response) {
+                    if (response.isSuccessful()) {
+                        Toast.makeText(getContext(), R.string.msg_favorite_added, Toast.LENGTH_SHORT).show();
+                    } else {
+                        experience.setFavorite(currentStatus);
+                        recommendedAdapter.notifyDataSetChanged();
+                        Toast.makeText(getContext(), "Error al añadir a favoritos", Toast.LENGTH_SHORT).show();
+                    }
+                }
+                @Override
+                public void onFailure(@NonNull Call<Favorite> call, @NonNull Throwable t) {
+                    experience.setFavorite(currentStatus);
+                    recommendedAdapter.notifyDataSetChanged();
+                    Toast.makeText(getContext(), "Error de conexión", Toast.LENGTH_SHORT).show();
+                }
+            });
         }
     }
 
