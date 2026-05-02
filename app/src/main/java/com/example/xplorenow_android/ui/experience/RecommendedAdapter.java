@@ -19,6 +19,7 @@ public class RecommendedAdapter extends ListAdapter<Experience, RecommendedAdapt
 
     public interface OnRecommendedClickListener {
         void onExperienceClick(Experience experience);
+        void onFavoriteClick(Experience experience);
     }
 
     private final OnRecommendedClickListener listener;
@@ -63,6 +64,19 @@ public class RecommendedAdapter extends ListAdapter<Experience, RecommendedAdapt
                     .placeholder(android.R.drawable.ic_menu_gallery)
                     .into(binding.imageRecommended);
 
+            binding.btnFavorite.setSelected(item.isFavorite());
+            if (item.isFavorite()) {
+                binding.btnFavorite.setColorFilter(android.graphics.Color.BLACK);
+            } else {
+                binding.btnFavorite.setColorFilter(android.graphics.Color.parseColor("#757575"));
+            }
+
+            binding.btnFavorite.setOnClickListener(v -> {
+                if (listener != null) {
+                    listener.onFavoriteClick(item);
+                }
+            });
+
             itemView.setOnClickListener(v -> {
                 if (listener != null) {
                     listener.onExperienceClick(item);
@@ -81,7 +95,8 @@ public class RecommendedAdapter extends ListAdapter<Experience, RecommendedAdapt
                 @Override
                 public boolean areContentsTheSame(@NonNull Experience oldItem, @NonNull Experience newItem) {
                     return oldItem.getName().equals(newItem.getName()) &&
-                            oldItem.getDestination().equals(newItem.getDestination());
+                            oldItem.getDestination().equals(newItem.getDestination()) &&
+                            oldItem.isFavorite() == newItem.isFavorite();
                 }
             };
 }
