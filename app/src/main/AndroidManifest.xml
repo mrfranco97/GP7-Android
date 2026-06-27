@@ -36,6 +36,10 @@
             android:name=".ui.news.NewsActivity"
             android:exported="false" />
 
+        <activity
+            android:name=".ui.news.NewsDetailActivity"
+            android:exported="false" />
+
         <!-- 👇 MAIN (NO SE TOCA) -->
         <activity
             android:name=".ui.MainActivity"

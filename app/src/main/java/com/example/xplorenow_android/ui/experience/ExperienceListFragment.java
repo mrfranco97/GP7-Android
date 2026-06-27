@@ -212,11 +212,15 @@ public class ExperienceListFragment extends Fragment implements FilterBottomShee
         binding.recyclerExperiences.setAdapter(adapter);
 
         adapter.addLoadStateListener(loadStates -> {
-            boolean isEmpty = loadStates.getRefresh() instanceof LoadState.NotLoading 
+            LoadState refreshState = loadStates.getRefresh();
+            
+            boolean isLoading = refreshState instanceof LoadState.Loading;
+            boolean isEmpty = refreshState instanceof LoadState.NotLoading 
                     && adapter.getItemCount() == 0;
             
+            binding.progressExperiences.setVisibility(isLoading ? View.VISIBLE : View.GONE);
             binding.layoutNoResults.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
-            binding.recyclerExperiences.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
+            binding.recyclerExperiences.setVisibility((isEmpty || isLoading) ? View.GONE : View.VISIBLE);
             return null;
         });
     }

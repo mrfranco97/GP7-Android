@@ -2,7 +2,9 @@ package com.example.xplorenow_android.ui.news;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -34,12 +36,14 @@ public class NewsActivity extends AppCompatActivity {
     NewsApi newsApi;
 
     private NewsAdapter newsAdapter;
+    private ProgressBar progressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_news);
 
+        progressBar = findViewById(R.id.progressNews);
         Button btnBack = findViewById(R.id.btnBackNews);
         btnBack.setOnClickListener(v -> finish());
 
@@ -54,9 +58,11 @@ public class NewsActivity extends AppCompatActivity {
     }
 
     private void loadNews() {
+        if (progressBar != null) progressBar.setVisibility(View.VISIBLE);
         newsApi.getNews(10).enqueue(new Callback<NewsResponse>() {
             @Override
             public void onResponse(@NonNull Call<NewsResponse> call, @NonNull Response<NewsResponse> response) {
+                if (progressBar != null) progressBar.setVisibility(View.GONE);
                 if (response.isSuccessful() && response.body() != null) {
                     newsAdapter.setItems(response.body().getItems());
                 } else {
@@ -66,6 +72,7 @@ public class NewsActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(@NonNull Call<NewsResponse> call, @NonNull Throwable t) {
+                if (progressBar != null) progressBar.setVisibility(View.GONE);
                 Log.e(TAG, "Error fetching news", t);
                 Toast.makeText(NewsActivity.this, "Error de conexion al cargar noticias", Toast.LENGTH_SHORT).show();
             }
