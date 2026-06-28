@@ -2,13 +2,16 @@ package com.example.xplorenow_android.ui.news;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -28,9 +31,9 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 @AndroidEntryPoint
-public class NewsActivity extends AppCompatActivity {
+public class NewsFragment extends Fragment {
 
-    private static final String TAG = "NewsActivity";
+    private static final String TAG = "NewsFragment";
 
     @Inject
     NewsApi newsApi;
@@ -38,23 +41,25 @@ public class NewsActivity extends AppCompatActivity {
     private NewsAdapter newsAdapter;
     private ProgressBar progressBar;
 
+    @Nullable
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_news);
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.activity_news, container, false);
 
-        progressBar = findViewById(R.id.progressNews);
-        Button btnBack = findViewById(R.id.btnBackNews);
-        btnBack.setOnClickListener(v -> finish());
+        progressBar = view.findViewById(R.id.progressNews);
+        Button btnBack = view.findViewById(R.id.btnBackNews);
+        // En un Fragment, el botón atrás suele navegar hacia atrás en el NavController
+        btnBack.setOnClickListener(v -> requireActivity().onBackPressed());
 
-        RecyclerView recyclerNews = findViewById(R.id.recyclerNews);
+        RecyclerView recyclerNews = view.findViewById(R.id.recyclerNews);
         List<News> newsList = new ArrayList<>();
         newsAdapter = new NewsAdapter(newsList);
 
-        recyclerNews.setLayoutManager(new LinearLayoutManager(this));
+        recyclerNews.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerNews.setAdapter(newsAdapter);
 
         loadNews();
+        return view;
     }
 
     private void loadNews() {
@@ -63,18 +68,22 @@ public class NewsActivity extends AppCompatActivity {
             @Override
             public void onResponse(@NonNull Call<NewsResponse> call, @NonNull Response<NewsResponse> response) {
                 if (progressBar != null) progressBar.setVisibility(View.GONE);
-                if (response.isSuccessful() && response.body() != null) {
-                    newsAdapter.setItems(response.body().getItems());
-                } else {
-                    Toast.makeText(NewsActivity.this, "No se pudieron cargar las noticias", Toast.LENGTH_SHORT).show();
+                if (isAdded()) {
+                    if (response.isSuccessful() && response.body() != null) {
+                        newsAdapter.setItems(response.body().getItems());
+                    } else {
+                        Toast.makeText(getContext(), "No se pudieron cargar las noticias", Toast.LENGTH_SHORT).show();
+                    }
                 }
             }
 
             @Override
             public void onFailure(@NonNull Call<NewsResponse> call, @NonNull Throwable t) {
-                if (progressBar != null) progressBar.setVisibility(View.GONE);
-                Log.e(TAG, "Error fetching news", t);
-                Toast.makeText(NewsActivity.this, "Error de conexion al cargar noticias", Toast.LENGTH_SHORT).show();
+                if (isAdded()) {
+                    if (progressBar != null) progressBar.setVisibility(View.GONE);
+                    Log.e(TAG, "Error fetching news", t);
+                    Toast.makeText(getContext(), "Error de conexion al cargar noticias", Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }

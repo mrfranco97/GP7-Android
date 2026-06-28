@@ -1,6 +1,6 @@
 package com.example.xplorenow_android.ui.news;
 
-import android.content.Intent;
+import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -8,6 +8,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -81,39 +82,36 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.NewsViewHolder
                 .into(holder.image);
 
         holder.itemView.setOnClickListener(v -> {
-            Intent intent = new Intent(holder.itemView.getContext(), NewsDetailActivity.class);
-            intent.putExtra(NewsDetailActivity.EXTRA_TITLE, news.getTitle());
-            intent.putExtra(NewsDetailActivity.EXTRA_DESCRIPTION, news.getDescription());
-            intent.putExtra(NewsDetailActivity.EXTRA_IMAGE_URL, news.getImageUrl());
-            intent.putExtra(NewsDetailActivity.EXTRA_DATE, news.getPublishedAt());
+            Bundle bundle = new Bundle();
+            bundle.putString(NewsDetailFragment.ARG_TITLE, news.getTitle());
+            bundle.putString(NewsDetailFragment.ARG_DESCRIPTION, news.getDescription());
+            bundle.putString(NewsDetailFragment.ARG_IMAGE_URL, news.getImageUrl());
+            bundle.putString(NewsDetailFragment.ARG_DATE, news.getPublishedAt());
             
             Object relatedId = news.getRelatedActivityId();
             if (relatedId != null) {
                 try {
                     int id = Integer.parseInt(relatedId.toString());
-                    intent.putExtra(NewsDetailActivity.EXTRA_EXPERIENCE_ID, id);
+                    bundle.putInt(NewsDetailFragment.ARG_EXPERIENCE_ID, id);
                 } catch (NumberFormatException ignored) {}
             }
             
-            holder.itemView.getContext().startActivity(intent);
+            Navigation.findNavController(v).navigate(R.id.action_NewsFragment_to_NewsDetailFragment, bundle);
         });
     }
 
     private String formatPublishedDate(String dateStr) {
         if (dateStr == null || dateStr.isEmpty()) return null;
         try {
-            // Maneja el formato ISO 8601 del JSON: "2026-07-10T09:00:00.000Z"
             SimpleDateFormat parser = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US);
             parser.setTimeZone(TimeZone.getTimeZone("UTC"));
             Date date = parser.parse(dateStr);
             
             if (date != null) {
-                // Formato amigable: "10 jul, 2026"
                 SimpleDateFormat formatter = new SimpleDateFormat("d MMM, yyyy", new Locale("es", "ES"));
                 return formatter.format(date);
             }
         } catch (Exception e) {
-            // Fallback para formatos más simples como "2026-07-10"
             try {
                 SimpleDateFormat fallbackParser = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
                 Date date = fallbackParser.parse(dateStr.split("T")[0]);
