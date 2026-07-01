@@ -105,7 +105,11 @@
         android:id="@+id/MyBookingsFragment"
         android:name="com.example.xplorenow_android.ui.experience.MyBookingsFragment"
         android:label="My Bookings"
-        tools:layout="@layout/fragment_my_bookings" />
+        tools:layout="@layout/fragment_my_bookings">
+        <action
+            android:id="@+id/action_MyBookingsFragment_to_VoucherFragment"
+            app:destination="@id/VoucherFragment" />
+    </fragment>
 
     <fragment
         android:id="@+id/BookingHistoryFragment"
@@ -126,4 +130,28 @@
             android:name="bookingId"
             app:argType="string" />
     </fragment>
+
+    <fragment
+        android:id="@+id/VoucherFragment"
+        android:name="com.example.xplorenow_android.ui.experience.VoucherFragment"
+        android:label="Voucher"
+        tools:layout="@layout/fragment_voucher">
+        <argument
+            android:name="bookingId"
+            app:argType="string" />
+        <action
+            android:id="@+id/action_VoucherFragment_to_QrScannerFragment"
+            app:destination="@id/QrScannerFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/QrScannerFragment"
+        android:name="com.example.xplorenow_android.ui.experience.QrScannerFragment"
+        android:label="QR Scanner"
+        tools:layout="@layout/fragment_qr_scanner">
+        <argument
+            android:name="bookingId"
+            app:argType="string" />
+    </fragment>
+
 </navigation>

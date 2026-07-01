@@ -11,6 +11,7 @@ import com.example.xplorenow_android.data.network.CatalogApi;
 import com.example.xplorenow_android.data.network.ExperienceApi;
 import com.example.xplorenow_android.data.network.FavoriteApi;
 import com.example.xplorenow_android.data.network.NewsApi;
+import com.example.xplorenow_android.data.network.VoucherApi;
 
 import java.io.IOException;
 
@@ -110,5 +111,11 @@ public class NetworkModule {
     @Singleton
     public FavoriteApi provideFavoriteApi(Retrofit retrofit) {
         return retrofit.create(FavoriteApi.class);
+    }
+
+    @Provides
+    @Singleton
+    public VoucherApi provideVoucherApi(Retrofit retrofit) {
+        return retrofit.create(VoucherApi.class);
     }
 }

@@ -22,6 +22,7 @@ public class MyBookingsAdapter extends RecyclerView.Adapter<MyBookingsAdapter.Bo
     public interface OnBookingActionListener {
         void onCancelClick(Booking booking);
         void onRateClick(Booking booking);
+        void onVoucherClick(Booking booking);
     }
 
     private final List<Booking> items = new ArrayList<>();
@@ -76,10 +77,10 @@ public class MyBookingsAdapter extends RecyclerView.Adapter<MyBookingsAdapter.Bo
 
             setStatusBadgeColor(booking.getStatus());
 
-            binding.btnCancelBooking.setVisibility(
-                    "confirmada".equalsIgnoreCase(booking.getStatus()) ? View.VISIBLE : View.GONE
-            );
+            boolean isConfirmed = "confirmada".equalsIgnoreCase(booking.getStatus());
 
+            binding.btnCancelBooking.setVisibility(isConfirmed ? View.VISIBLE : View.GONE);
+            binding.btnViewVoucher.setVisibility(isConfirmed ? View.VISIBLE : View.GONE);
             binding.btnRateBooking.setVisibility(booking.isCanRate() ? View.VISIBLE : View.GONE);
 
             binding.btnCancelBooking.setOnClickListener(v -> {
@@ -91,6 +92,12 @@ public class MyBookingsAdapter extends RecyclerView.Adapter<MyBookingsAdapter.Bo
             binding.btnRateBooking.setOnClickListener(v -> {
                 if (listener != null) {
                     listener.onRateClick(booking);
+                }
+            });
+
+            binding.btnViewVoucher.setOnClickListener(v -> {
+                if (listener != null) {
+                    listener.onVoucherClick(booking);
                 }
             });
 
