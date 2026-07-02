@@ -147,7 +147,8 @@ public class VoucherFragment extends Fragment {
         });
     }
 
-    private void showVoucher(Voucher voucher) {
+private void showVoucher(Voucher voucher) {
+        if (binding == null) return;
         binding.progressVoucher.setVisibility(View.GONE);
         binding.layoutError.setVisibility(View.GONE);
         binding.layoutVoucherContent.setVisibility(View.VISIBLE);
