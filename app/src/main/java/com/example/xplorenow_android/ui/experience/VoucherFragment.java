@@ -234,7 +234,8 @@ private void showVoucher(Voucher voucher) {
         }
     }
 
-    private void showLoading() {
+private void showLoading() {
+        if (binding == null) return;
         binding.progressVoucher.setVisibility(View.VISIBLE);
         binding.layoutVoucherContent.setVisibility(View.GONE);
         binding.layoutError.setVisibility(View.GONE);
