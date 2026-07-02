@@ -51,6 +51,7 @@ public class MainActivity extends AppCompatActivity {
     NotificationsApi notificationsApi;
 
     private ActivityMainBinding binding;
+    private NavController navController;
 
     private final ActivityResultLauncher<String> requestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
@@ -66,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
+        navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
 
         NavigationUI.setupWithNavController(binding.bottomNav, navController);
 

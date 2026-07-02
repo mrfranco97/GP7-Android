@@ -18,6 +18,8 @@ public class News {
     private String imageUrl;
     @SerializedName("published_at")
     private String publishedAt;
+    @SerializedName("related_activity_id")
+    private String relatedActivityId;
 
     public News(String id, String title, String summary, String description, String imageUrl) {
         this.id = id;
@@ -53,5 +55,13 @@ public class News {
 
     public String getPublishedAt() {
         return publishedAt;
+    }
+
+    public String getRelatedActivityId() {
+        return relatedActivityId;
+    }
+
+    public void setRelatedActivityId(String relatedActivityId) {
+        this.relatedActivityId = relatedActivityId;
     }
 }

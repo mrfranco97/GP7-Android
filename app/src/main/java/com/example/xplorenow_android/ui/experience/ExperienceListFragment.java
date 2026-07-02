@@ -1,6 +1,5 @@
 package com.example.xplorenow_android.ui.experience;
-import android.content.Intent;
-import com.example.xplorenow_android.ui.news.NewsActivity;
+
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.Network;
@@ -14,7 +13,6 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.LiveData;
-import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
 import androidx.paging.LoadState;
 import androidx.paging.Pager;
@@ -102,8 +100,7 @@ public class ExperienceListFragment extends Fragment implements FilterBottomShee
     }
     private void setupNewsNavigation() {
         binding.btnNews.setOnClickListener(v ->  {
-            Intent intent = new Intent(requireContext(), NewsActivity.class);
-            startActivity(intent);
+            Navigation.findNavController(v).navigate(R.id.action_ExperienceListFragment_to_NewsFragment);
         });
     }
     @Override
@@ -212,11 +209,15 @@ public class ExperienceListFragment extends Fragment implements FilterBottomShee
         binding.recyclerExperiences.setAdapter(adapter);
 
         adapter.addLoadStateListener(loadStates -> {
-            boolean isEmpty = loadStates.getRefresh() instanceof LoadState.NotLoading 
+            LoadState refreshState = loadStates.getRefresh();
+            
+            boolean isLoading = refreshState instanceof LoadState.Loading;
+            boolean isEmpty = refreshState instanceof LoadState.NotLoading 
                     && adapter.getItemCount() == 0;
             
+            binding.progressExperiences.setVisibility(isLoading ? View.VISIBLE : View.GONE);
             binding.layoutNoResults.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
-            binding.recyclerExperiences.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
+            binding.recyclerExperiences.setVisibility((isEmpty || isLoading) ? View.GONE : View.VISIBLE);
             return null;
         });
     }
