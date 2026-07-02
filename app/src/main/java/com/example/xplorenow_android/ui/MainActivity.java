@@ -1,5 +1,6 @@
 package com.example.xplorenow_android.ui;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
@@ -8,7 +9,6 @@ import androidx.navigation.NavController;
 import androidx.navigation.NavOptions;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.NavigationUI;
-import android.view.View;
 
 import com.example.xplorenow_android.R;
 import com.example.xplorenow_android.data.local.AppDatabase;
@@ -29,6 +29,7 @@ public class MainActivity extends AppCompatActivity {
     AppDatabase db;
 
     private ActivityMainBinding binding;
+    private NavController navController;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,7 +38,7 @@ public class MainActivity extends AppCompatActivity {
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
+        navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
 
         NavigationUI.setupWithNavController(binding.bottomNav, navController);
 
@@ -68,6 +69,28 @@ public class MainActivity extends AppCompatActivity {
                 binding.textNoConnection.setVisibility(isOnline ? View.GONE : View.VISIBLE);
             }
         });
+
+        handleIntent(getIntent());
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        handleIntent(intent);
+    }
+
+    private void handleIntent(Intent intent) {
+        if (intent != null && intent.hasExtra("experienceId")) {
+            int experienceId = intent.getIntExtra("experienceId", -1);
+            if (experienceId != -1) {
+                Bundle args = new Bundle();
+                args.putInt("experienceId", experienceId);
+                navController.navigate(R.id.ExperienceDetailFragment, args);
+                // Clear extra to avoid re-triggering on rotation
+                intent.removeExtra("experienceId");
+            }
+        }
     }
 
     @Override
