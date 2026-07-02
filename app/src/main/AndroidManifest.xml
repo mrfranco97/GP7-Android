@@ -40,11 +40,6 @@
             android:foregroundServiceType="dataSync"
             android:exported="false" />
 
-        <!-- 👇 TU NUEVA ACTIVITY (NOTICIAS) -->
-        <activity
-            android:name=".ui.news.NewsActivity"
-            android:exported="false" />
-
         <!-- 👇 MAIN (NO SE TOCA) -->
         <activity
             android:name=".ui.MainActivity"
