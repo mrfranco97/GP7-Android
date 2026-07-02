@@ -11,10 +11,8 @@ import com.example.xplorenow_android.data.network.CatalogApi;
 import com.example.xplorenow_android.data.network.ExperienceApi;
 import com.example.xplorenow_android.data.network.FavoriteApi;
 import com.example.xplorenow_android.data.network.NewsApi;
-import com.example.xplorenow_android.data.network.NotificationsApi;
 
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
 
 import javax.inject.Singleton;
 
@@ -37,9 +35,6 @@ public class NetworkModule {
     @Singleton
     public OkHttpClient provideOkHttp(TokenManager tokenManager, AuthEventBus authEventBus, AppDatabase db) {
         return new OkHttpClient.Builder()
-                .connectTimeout(60, TimeUnit.SECONDS) // Aumentado para Long Polling
-                .readTimeout(60, TimeUnit.SECONDS)    // Aumentado para Long Polling
-                .writeTimeout(60, TimeUnit.SECONDS)
                 .addInterceptor(chain -> {
                     String token = tokenManager.getToken();
                     okhttp3.Request request = chain.request();
@@ -115,11 +110,5 @@ public class NetworkModule {
     @Singleton
     public FavoriteApi provideFavoriteApi(Retrofit retrofit) {
         return retrofit.create(FavoriteApi.class);
-    }
-
-    @Provides
-    @Singleton
-    public NotificationsApi provideNotificationsApi(Retrofit retrofit) {
-        return retrofit.create(NotificationsApi.class);
     }
 }
