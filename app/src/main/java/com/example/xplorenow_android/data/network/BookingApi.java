@@ -34,4 +34,7 @@ public interface BookingApi {
 
     @POST("api/bookings/{bookingId}/rating")
     Call<BookingResponse> submitRating(@Path("bookingId") String bookingId, @Body Rating rating);
+
+    @POST("api/bookings/checkin")
+    Call<CheckinResponse> confirmCheckin(@Body CheckinRequest request);
 }

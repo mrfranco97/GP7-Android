@@ -141,6 +141,12 @@
     </fragment>
 
     <fragment
+        android:id="@+id/QrScanFragment"
+        android:name="com.example.xplorenow_android.ui.qr.QrScanFragment"
+        android:label="Escanear QR"
+        tools:layout="@layout/fragment_qr_scan" />
+
+    <fragment
         android:id="@+id/NewsDetailFragment"
         android:name="com.example.xplorenow_android.ui.news.NewsDetailFragment"
         android:label="Detalle de noticia"
