@@ -126,24 +126,15 @@ public class VoucherFragment extends Fragment {
 
     private void loadFromLocal() {
         executor.execute(() -> {
-            try {
-                int id = Integer.parseInt(bookingId);
-                Voucher voucher = voucherDao.getVoucherByBookingId(id);
-                mainHandler.post(() -> {
-                    if (!isAdded()) return;
-                    if (voucher != null) {
-                        showVoucher(voucher);
-                    } else {
-                        showError("Sin conexión. No hay datos guardados para este voucher.");
-                    }
-                });
-            } catch (NumberFormatException e) {
-                mainHandler.post(() -> {
-                    if (isAdded()) {
-                        showError("Sin conexión. No hay datos guardados para este voucher.");
-                    }
-                });
-            }
+            Voucher voucher = voucherDao.getVoucherByBookingId(bookingId);
+            mainHandler.post(() -> {
+                if (!isAdded()) return;
+                if (voucher != null) {
+                    showVoucher(voucher);
+                } else {
+                    showError("Sin conexión. No hay datos guardados para este voucher.");
+                }
+            });
         });
     }
 
@@ -242,6 +233,7 @@ private void showLoading() {
     }
 
     private void showError(String message) {
+        if ( binding == null ) return;
         binding.progressVoucher.setVisibility(View.GONE);
         binding.layoutVoucherContent.setVisibility(View.GONE);
         binding.layoutError.setVisibility(View.VISIBLE);

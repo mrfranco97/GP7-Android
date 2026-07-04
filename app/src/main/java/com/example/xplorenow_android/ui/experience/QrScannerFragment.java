@@ -31,9 +31,6 @@ public class QrScannerFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         binding.btnBack.setOnClickListener(v -> Navigation.findNavController(v).navigateUp());
-
-        // bookingId is available via getArguments().getString("bookingId")
-        // for Persona 3 to use when implementing the actual QR scanner
     }
 
     @Override

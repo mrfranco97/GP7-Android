@@ -3,13 +3,16 @@ package com.example.xplorenow_android.data.model;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 import com.google.gson.annotations.SerializedName;
+import androidx.annotation.NonNull;
 
 @Entity(tableName = "vouchers")
 public class Voucher {
 
     @PrimaryKey
+    @NonNull
     @SerializedName("booking_id")
-    private int bookingId;
+
+    private String bookingId;
 
     @SerializedName("activity_name")
     private String activityName;
@@ -40,8 +43,8 @@ public class Voucher {
 
     // Getters and Setters
 
-    public int getBookingId() { return bookingId; }
-    public void setBookingId(int bookingId) { this.bookingId = bookingId; }
+    public String getBookingId() { return bookingId; }
+    public void setBookingId(String bookingId) { this.bookingId = bookingId; }
 
     public String getActivityName() { return activityName; }
     public void setActivityName(String activityName) { this.activityName = activityName; }

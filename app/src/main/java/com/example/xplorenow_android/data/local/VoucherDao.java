@@ -11,11 +11,11 @@ import com.example.xplorenow_android.data.model.Voucher;
 public interface VoucherDao {
 
     @Query("SELECT * FROM vouchers WHERE bookingId = :bookingId")
-    Voucher getVoucherByBookingId(int bookingId);
+    Voucher getVoucherByBookingId(String bookingId);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertVoucher(Voucher voucher);
 
     @Query("DELETE FROM vouchers WHERE bookingId = :bookingId")
-    void deleteVoucher(int bookingId);
+    void deleteVoucher(String bookingId);
 }
