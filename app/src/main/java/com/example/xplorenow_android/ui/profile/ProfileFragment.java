@@ -218,10 +218,12 @@ public class ProfileFragment extends Fragment {
                 == BiometricManager.BIOMETRIC_SUCCESS;
 
         if (!deviceCanAuthenticate) {
-            // El dispositivo no tiene ningún factor configurado: se deshabilita el switch
+            // El dispositivo no tiene ningún factor configurado: se deshabilita el switch y se muestra el mensaje
             binding.switchBiometric.setEnabled(false);
-            Toast.makeText(getContext(), getString(R.string.security_biometric_unavailable), Toast.LENGTH_SHORT).show();
+            binding.textBiometricStatus.setVisibility(View.VISIBLE);
             return;
+        } else {
+            binding.textBiometricStatus.setVisibility(View.GONE);
         }
 
         // Reflejar el estado actual sin disparar el listener

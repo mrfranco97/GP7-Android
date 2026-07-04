@@ -128,6 +128,14 @@
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         tools:listitem="@layout/item_experience" />
 
+    <ProgressBar
+        android:id="@+id/progress_experiences"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+
     <!-- No results disclaimer banner - Ajustado para verse más arriba -->
     <LinearLayout
         android:id="@+id/layout_no_results"
