@@ -2,13 +2,14 @@ package com.example.xplorenow_android.ui.qr;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -22,9 +23,9 @@ import androidx.camera.core.ImageProxy;
 import androidx.camera.core.Preview;
 import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
-import androidx.cardview.widget.CardView;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.Navigation;
 
 import com.example.xplorenow_android.R;
 import com.example.xplorenow_android.data.network.BookingApi;
@@ -53,24 +54,25 @@ public class QrScanFragment extends Fragment {
 
     private static final String TAG = "QrScanFragment";
 
+    private enum CheckinState { SUCCESS, WARNING, ERROR }
+
     @Inject
     BookingApi bookingApi;
 
     private PreviewView previewView;
-    private CardView cardResultado;
+    private FrameLayout layoutResultado;
+    private ImageView ivIcono;
+    private TextView tvTitulo;
+    private TextView tvActividad;
     private TextView tvMensaje;
     private TextView tvInstruccion;
+    private Button btnVolver;
 
     private ExecutorService cameraExecutor;
     private BarcodeScanner barcodeScanner;
 
-    // Evita enviar múltiples requests mientras se procesa un QR
     private boolean procesando = false;
 
-    /*
-     * El launcher de permisos debe registrarse en onCreate(), antes de onStart().
-     * Si se registra más tarde, Android lanza una excepción.
-     */
     private ActivityResultLauncher<String> requestPermissionLauncher;
 
     @Override
@@ -110,12 +112,21 @@ public class QrScanFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        previewView = view.findViewById(R.id.previewView);
-        cardResultado = view.findViewById(R.id.cardResultado);
-        tvMensaje = view.findViewById(R.id.tvMensaje);
+        previewView   = view.findViewById(R.id.previewView);
+        layoutResultado = view.findViewById(R.id.layoutResultado);
+        ivIcono       = view.findViewById(R.id.ivIcono);
+        tvTitulo      = view.findViewById(R.id.tvTitulo);
+        tvActividad   = view.findViewById(R.id.tvActividad);
+        tvMensaje     = view.findViewById(R.id.tvMensaje);
         tvInstruccion = view.findViewById(R.id.tvInstruccion);
-        Button btnReintentar = view.findViewById(R.id.btnReintentar);
-        btnReintentar.setOnClickListener(v -> reiniciarEscaneo());
+        btnVolver     = view.findViewById(R.id.btnVolver);
+
+        btnVolver.setOnClickListener(v ->
+            Navigation.findNavController(v)
+                .navigate(R.id.action_QrScanFragment_to_ExperienceListFragment)
+        );
+
+        view.findViewById(R.id.btnReintentar).setOnClickListener(v -> reiniciarEscaneo());
 
         pedirPermisoCamara();
     }
@@ -140,7 +151,6 @@ public class QrScanFragment extends Fragment {
                 Preview preview = new Preview.Builder().build();
                 preview.setSurfaceProvider(previewView.getSurfaceProvider());
 
-                // STRATEGY_KEEP_ONLY_LATEST: descarta frames si el analyzer no terminó el anterior
                 ImageAnalysis analisis = new ImageAnalysis.Builder()
                     .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                     .build();
@@ -148,8 +158,6 @@ public class QrScanFragment extends Fragment {
                 analisis.setAnalyzer(cameraExecutor, this::analizarFrame);
 
                 cameraProvider.unbindAll();
-
-                // bindToLifecycle libera la cámara automáticamente en onPause/onDestroy
                 cameraProvider.bindToLifecycle(
                     getViewLifecycleOwner(),
                     CameraSelector.DEFAULT_BACK_CAMERA,
@@ -164,7 +172,6 @@ public class QrScanFragment extends Fragment {
     }
 
     private void analizarFrame(@NonNull ImageProxy imageProxy) {
-        // Si ya estamos procesando un QR, ignorar frames siguientes hasta terminar
         if (procesando) {
             imageProxy.close();
             return;
@@ -192,10 +199,7 @@ public class QrScanFragment extends Fragment {
                 }
             })
             .addOnFailureListener(e -> Log.w(TAG, "Error en ML Kit barcode scan", e))
-            .addOnCompleteListener(tarea -> {
-                // imageProxy.close() SIEMPRE al terminar; sin esto CameraX no entrega el siguiente frame
-                imageProxy.close();
-            });
+            .addOnCompleteListener(tarea -> imageProxy.close());
     }
 
     private void enviarCheckin(String rawQr) {
@@ -204,36 +208,82 @@ public class QrScanFragment extends Fragment {
             public void onResponse(@NonNull Call<CheckinResponse> call,
                                    @NonNull Response<CheckinResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    CheckinResponse body = response.body();
-                    boolean esExito = "confirmed".equals(body.getResult());
-                    mostrarResultado(body.getMessage(), esExito);
+                    mostrarResultado(response.body());
                 } else {
-                    mostrarResultado("No se pudo confirmar el check-in", false);
+                    mostrarResultadoError("No se pudo confirmar el check-in");
                 }
             }
 
             @Override
             public void onFailure(@NonNull Call<CheckinResponse> call, @NonNull Throwable t) {
                 Log.e(TAG, "Error de red en check-in", t);
-                mostrarResultado("Error de conexión. Intentá de nuevo.", false);
+                mostrarResultadoError("Error de conexión. Intentá de nuevo.");
             }
         });
     }
 
-    private void mostrarResultado(String mensaje, boolean exito) {
+    private void mostrarResultado(CheckinResponse response) {
+        if (response.isSuccess()) {
+            boolean yaHecho = Boolean.TRUE.equals(response.getAlreadyCheckedIn());
+            CheckinState estado = yaHecho ? CheckinState.WARNING : CheckinState.SUCCESS;
+            String actividad = response.getActivityName();
+            aplicarEstado(estado, response.getMessage(), actividad);
+        } else {
+            aplicarEstado(CheckinState.ERROR, response.getMessage(), null);
+        }
+    }
+
+    private void mostrarResultadoError(String mensaje) {
+        aplicarEstado(CheckinState.ERROR, mensaje, null);
+    }
+
+    private void aplicarEstado(CheckinState estado, String mensaje, @Nullable String nombreActividad) {
         requireActivity().runOnUiThread(() -> {
             tvInstruccion.setVisibility(View.GONE);
-            cardResultado.setVisibility(View.VISIBLE);
-            tvMensaje.setText(mensaje);
+            layoutResultado.setVisibility(View.VISIBLE);
 
-            int color = exito ? Color.parseColor("#4CAF50") : Color.parseColor("#F44336");
-            cardResultado.setCardBackgroundColor(color);
+            switch (estado) {
+                case SUCCESS:
+                    ivIcono.setImageResource(R.drawable.ic_checkin_success);
+                    tvTitulo.setText("¡Asistencia confirmada!");
+                    tvTitulo.setTextColor(0xFF4CAF50);
+                    btnVolver.setVisibility(View.VISIBLE);
+                    break;
+
+                case WARNING:
+                    ivIcono.setImageResource(R.drawable.ic_checkin_warning);
+                    tvTitulo.setText("Ya confirmaste tu asistencia");
+                    tvTitulo.setTextColor(0xFFFFC107);
+                    btnVolver.setVisibility(View.VISIBLE);
+                    break;
+
+                case ERROR:
+                    ivIcono.setImageResource(R.drawable.ic_checkin_error);
+                    tvTitulo.setText("QR inválido");
+                    tvTitulo.setTextColor(0xFFF44336);
+                    btnVolver.setVisibility(View.VISIBLE);
+                    break;
+            }
+
+            if (nombreActividad != null && !nombreActividad.isEmpty()) {
+                tvActividad.setText(nombreActividad);
+                tvActividad.setVisibility(View.VISIBLE);
+            } else {
+                tvActividad.setVisibility(View.GONE);
+            }
+
+            if (mensaje != null && !mensaje.isEmpty()) {
+                tvMensaje.setText(mensaje);
+                tvMensaje.setVisibility(View.VISIBLE);
+            } else {
+                tvMensaje.setVisibility(View.GONE);
+            }
         });
     }
 
     private void reiniciarEscaneo() {
         procesando = false;
-        cardResultado.setVisibility(View.GONE);
+        layoutResultado.setVisibility(View.GONE);
         tvInstruccion.setVisibility(View.VISIBLE);
     }
 
