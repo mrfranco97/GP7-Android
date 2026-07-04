@@ -12,6 +12,8 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 
+import com.example.xplorenow_android.R;
+
 import com.example.xplorenow_android.data.local.BookingDao;
 import com.example.xplorenow_android.data.model.Booking;
 import com.example.xplorenow_android.data.network.BookingApi;
@@ -73,6 +75,11 @@ public class MyBookingsFragment extends Fragment {
             @Override
             public void onRateClick(Booking booking) {
                 showRatingBottomSheet(booking);
+            }
+
+            @Override
+            public void onVoucherClick(Booking booking) {
+                navigateToVoucher(booking);
             }
         });
         binding.recyclerMyBookings.setAdapter(adapter);
@@ -209,6 +216,13 @@ public class MyBookingsFragment extends Fragment {
                 .setMessage(details)
                 .setPositiveButton("Entendido", null)
                 .show();
+    }
+
+    private void navigateToVoucher(Booking booking) {
+        Bundle args = new Bundle();
+        args.putString("bookingId", booking.getId());
+        Navigation.findNavController(requireView())
+                .navigate(R.id.action_MyBookingsFragment_to_VoucherFragment, args);
     }
 
     @Override

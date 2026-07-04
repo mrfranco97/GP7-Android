@@ -4,6 +4,7 @@ import android.content.Context;
 import androidx.room.Room;
 import com.example.xplorenow_android.data.local.AppDatabase;
 import com.example.xplorenow_android.data.local.BookingDao;
+import com.example.xplorenow_android.data.local.VoucherDao;
 import dagger.Module;
 import dagger.Provides;
 import dagger.hilt.InstallIn;
@@ -26,5 +27,10 @@ public class DatabaseModule {
     @Provides
     public BookingDao provideBookingDao(AppDatabase database) {
         return database.bookingDao();
+    }
+
+    @Provides
+    public VoucherDao provideVoucherDao(AppDatabase database) {
+        return database.voucherDao();
     }
 }
