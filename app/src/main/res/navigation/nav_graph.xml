@@ -28,6 +28,15 @@
         android:name="com.example.xplorenow_android.ui.auth.OtpFragment"
         android:label="Verificar código"
         tools:layout="@layout/fragment_otp">
+        <argument
+            android:name="email"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="@null" />
+        <argument
+            android:name="otpRequested"
+            app:argType="boolean"
+            android:defaultValue="false" />
         <action
             android:id="@+id/action_OtpFragment_to_ExperienceListFragment"
             app:destination="@id/ExperienceListFragment"
@@ -40,6 +49,9 @@
         android:name="com.example.xplorenow_android.ui.auth.RegisterFragment"
         android:label="Crear cuenta"
         tools:layout="@layout/fragment_register">
+        <action
+            android:id="@+id/action_RegisterFragment_to_OtpFragment"
+            app:destination="@id/OtpFragment" />
         <action
             android:id="@+id/action_RegisterFragment_to_ExperienceListFragment"
             app:destination="@id/ExperienceListFragment"
