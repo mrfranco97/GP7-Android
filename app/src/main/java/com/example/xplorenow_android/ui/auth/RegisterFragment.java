@@ -14,8 +14,6 @@ import androidx.navigation.Navigation;
 import com.example.xplorenow_android.R;
 import com.example.xplorenow_android.data.network.AuthApi;
 import com.example.xplorenow_android.data.network.AuthResponse;
-import com.example.xplorenow_android.data.network.OtpRequest;
-import com.example.xplorenow_android.data.network.OtpResponse;
 import com.example.xplorenow_android.data.network.RegisterRequest;
 import com.example.xplorenow_android.databinding.FragmentRegisterBinding;
 
@@ -89,26 +87,6 @@ public class RegisterFragment extends Fragment {
         authApi.register(new RegisterRequest(name, email, "", password)).enqueue(new Callback<AuthResponse>() {
             @Override
             public void onResponse(@NonNull Call<AuthResponse> call, @NonNull Response<AuthResponse> response) {
-                if (response.isSuccessful()) {
-                    requestRegistrationOtp(email);
-                } else {
-                    setLoading(false);
-                    Toast.makeText(getContext(), getString(R.string.error_register), Toast.LENGTH_SHORT).show();
-                }
-            }
-
-            @Override
-            public void onFailure(@NonNull Call<AuthResponse> call, @NonNull Throwable t) {
-                setLoading(false);
-                Toast.makeText(getContext(), getString(R.string.error_connection), Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-    private void requestRegistrationOtp(String email) {
-        authApi.requestOtp(new OtpRequest(email)).enqueue(new Callback<OtpResponse>() {
-            @Override
-            public void onResponse(@NonNull Call<OtpResponse> call, @NonNull Response<OtpResponse> response) {
                 setLoading(false);
                 if (response.isSuccessful()) {
                     Bundle args = new Bundle();
@@ -117,12 +95,12 @@ public class RegisterFragment extends Fragment {
                     Navigation.findNavController(requireView())
                             .navigate(R.id.action_RegisterFragment_to_OtpFragment, args);
                 } else {
-                    Toast.makeText(getContext(), getString(R.string.error_otp_send_after_register), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), getString(R.string.error_register), Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
-            public void onFailure(@NonNull Call<OtpResponse> call, @NonNull Throwable t) {
+            public void onFailure(@NonNull Call<AuthResponse> call, @NonNull Throwable t) {
                 setLoading(false);
                 Toast.makeText(getContext(), getString(R.string.error_connection), Toast.LENGTH_SHORT).show();
             }
