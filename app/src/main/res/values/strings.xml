@@ -70,6 +70,7 @@
     <string name="error_invalid_credentials">Correo o contraseña incorrectos</string>
     <string name="error_connection">Error de conexión. Verificá tu internet</string>
     <string name="error_otp_send">No se pudo enviar el código. Intentá de nuevo</string>
+    <string name="error_otp_send_after_register">La cuenta se creó, pero no pudimos enviar el código. Intentá reenviarlo desde ingreso con código.</string>
     <string name="error_register">No se pudo crear la cuenta. El correo puede estar en uso</string>
     <string name="otp_resent">Código reenviado correctamente</string>
 

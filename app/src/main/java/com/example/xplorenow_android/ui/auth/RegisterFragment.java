@@ -12,9 +12,10 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 
 import com.example.xplorenow_android.R;
-import com.example.xplorenow_android.data.local.TokenManager;
 import com.example.xplorenow_android.data.network.AuthApi;
 import com.example.xplorenow_android.data.network.AuthResponse;
+import com.example.xplorenow_android.data.network.OtpRequest;
+import com.example.xplorenow_android.data.network.OtpResponse;
 import com.example.xplorenow_android.data.network.RegisterRequest;
 import com.example.xplorenow_android.databinding.FragmentRegisterBinding;
 
@@ -30,9 +31,6 @@ public class RegisterFragment extends Fragment {
 
     @Inject
     AuthApi authApi;
-
-    @Inject
-    TokenManager tokenManager;
 
     private FragmentRegisterBinding binding;
 
@@ -91,12 +89,10 @@ public class RegisterFragment extends Fragment {
         authApi.register(new RegisterRequest(name, email, "", password)).enqueue(new Callback<AuthResponse>() {
             @Override
             public void onResponse(@NonNull Call<AuthResponse> call, @NonNull Response<AuthResponse> response) {
-                setLoading(false);
-                if (response.isSuccessful() && response.body() != null) {
-                    tokenManager.saveToken(response.body().getToken());
-                    Navigation.findNavController(requireView())
-                            .navigate(R.id.action_RegisterFragment_to_ExperienceListFragment);
+                if (response.isSuccessful()) {
+                    requestRegistrationOtp(email);
                 } else {
+                    setLoading(false);
                     Toast.makeText(getContext(), getString(R.string.error_register), Toast.LENGTH_SHORT).show();
                 }
             }
@@ -109,9 +105,34 @@ public class RegisterFragment extends Fragment {
         });
     }
 
+    private void requestRegistrationOtp(String email) {
+        authApi.requestOtp(new OtpRequest(email)).enqueue(new Callback<OtpResponse>() {
+            @Override
+            public void onResponse(@NonNull Call<OtpResponse> call, @NonNull Response<OtpResponse> response) {
+                setLoading(false);
+                if (response.isSuccessful()) {
+                    Bundle args = new Bundle();
+                    args.putString("email", email);
+                    args.putBoolean("otpRequested", true);
+                    Navigation.findNavController(requireView())
+                            .navigate(R.id.action_RegisterFragment_to_OtpFragment, args);
+                } else {
+                    Toast.makeText(getContext(), getString(R.string.error_otp_send_after_register), Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<OtpResponse> call, @NonNull Throwable t) {
+                setLoading(false);
+                Toast.makeText(getContext(), getString(R.string.error_connection), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
     private void setLoading(boolean loading) {
         binding.btnRegister.setEnabled(!loading);
         binding.btnBack.setEnabled(!loading);
+        binding.progressRegister.setVisibility(loading ? View.VISIBLE : View.GONE);
     }
 
     @Override

@@ -30,6 +30,9 @@ import retrofit2.Response;
 @AndroidEntryPoint
 public class OtpFragment extends Fragment {
 
+    private static final String ARG_EMAIL = "email";
+    private static final String ARG_OTP_REQUESTED = "otpRequested";
+
     @Inject
     AuthApi authApi;
 
@@ -49,7 +52,23 @@ public class OtpFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        readArguments();
         setupListeners();
+    }
+
+    private void readArguments() {
+        Bundle args = getArguments();
+        if (args == null) {
+            return;
+        }
+
+        email = args.getString(ARG_EMAIL);
+        if (email != null) {
+            binding.editEmail.setText(email);
+        }
+        if (email != null && args.getBoolean(ARG_OTP_REQUESTED, false)) {
+            showCodeStep();
+        }
     }
 
     private void setupListeners() {
@@ -67,6 +86,10 @@ public class OtpFragment extends Fragment {
         });
 
         binding.btnVerify.setOnClickListener(v -> {
+            if (email == null || email.isEmpty()) {
+                Toast.makeText(getContext(), getString(R.string.error_required_email), Toast.LENGTH_SHORT).show();
+                return;
+            }
             String code = binding.editOtpCode.getText().toString().trim();
             if (code.length() != 6) {
                 binding.inputOtpCodeLayout.setError(getString(R.string.error_invalid_otp));
@@ -76,7 +99,13 @@ public class OtpFragment extends Fragment {
             doVerifyOtp(email, code);
         });
 
-        binding.btnResend.setOnClickListener(v -> doResendOtp(email));
+        binding.btnResend.setOnClickListener(v -> {
+            if (email == null || email.isEmpty()) {
+                Toast.makeText(getContext(), getString(R.string.error_required_email), Toast.LENGTH_SHORT).show();
+                return;
+            }
+            doResendOtp(email);
+        });
     }
 
     private void doRequestOtp(String email) {
@@ -130,7 +159,7 @@ public class OtpFragment extends Fragment {
             @Override
             public void onResponse(@NonNull Call<AuthResponse> call, @NonNull Response<AuthResponse> response) {
                 setLoading(false);
-                if (response.isSuccessful() && response.body() != null) {
+                if (response.isSuccessful() && response.body() != null && hasToken(response.body())) {
                     tokenManager.saveToken(response.body().getToken());
                     Navigation.findNavController(requireView())
                             .navigate(R.id.action_OtpFragment_to_ExperienceListFragment);
@@ -153,10 +182,17 @@ public class OtpFragment extends Fragment {
         binding.textOtpCodeSubtitle.setText(getString(R.string.otp_subtitle, email));
     }
 
+    private boolean hasToken(AuthResponse response) {
+        String token = response.getToken();
+        return token != null && !token.isEmpty();
+    }
+
     private void setLoading(boolean loading) {
         binding.btnSendCode.setEnabled(!loading);
         binding.btnVerify.setEnabled(!loading);
         binding.btnResend.setEnabled(!loading);
+        binding.btnBack.setEnabled(!loading);
+        binding.progressOtp.setVisibility(loading ? View.VISIBLE : View.GONE);
     }
 
     @Override
