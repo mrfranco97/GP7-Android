@@ -22,6 +22,7 @@ import com.example.xplorenow_android.data.model.Experience;
 import com.example.xplorenow_android.data.model.Favorite;
 import com.example.xplorenow_android.data.network.ExperienceApi;
 import com.example.xplorenow_android.data.network.FavoriteApi;
+import com.example.xplorenow_android.data.network.FavoriteResponse;
 import com.example.xplorenow_android.databinding.FragmentExperienceDetailBinding;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -188,6 +189,8 @@ public class ExperienceDetailFragment extends Fragment implements OnMapReadyCall
                     binding.progressDetail.setVisibility(View.GONE);
                     if (response.isSuccessful() && response.body() != null) {
                         currentExperience = response.body();
+                        // Sincronizar el estado de favorito con la lista global del usuario
+                        syncFavoriteStatus();
                         bindExperienceData(currentExperience);
                     } else {
                         Toast.makeText(getContext(), "Error al cargar el detalle", Toast.LENGTH_SHORT).show();
@@ -201,6 +204,32 @@ public class ExperienceDetailFragment extends Fragment implements OnMapReadyCall
                     binding.progressDetail.setVisibility(View.GONE);
                     Toast.makeText(getContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
                 }
+            }
+        });
+    }
+
+    private void syncFavoriteStatus() {
+        favoriteApi.getFavorites().enqueue(new Callback<FavoriteResponse>() {
+            @Override
+            public void onResponse(@NonNull Call<FavoriteResponse> call, @NonNull Response<FavoriteResponse> response) {
+                if (isAdded() && response.isSuccessful() && response.body() != null) {
+                    boolean found = false;
+                    for (Favorite fav : response.body().getItems()) {
+                        if (fav.getActivity() != null && fav.getActivity().getId() == experienceId) {
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (currentExperience != null) {
+                        currentExperience.setFavorite(found);
+                        updateFavoriteUI();
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<FavoriteResponse> call, @NonNull Throwable t) {
+                // Si falla, mantenemos el estado que venía en el detalle
             }
         });
     }
