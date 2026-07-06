@@ -13,7 +13,9 @@ import com.example.xplorenow_android.data.model.Experience;
 import com.example.xplorenow_android.databinding.ItemRecommendedExperienceBinding;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class RecommendedAdapter extends ListAdapter<Experience, RecommendedAdapter.RecommendedViewHolder> {
 
@@ -23,10 +25,19 @@ public class RecommendedAdapter extends ListAdapter<Experience, RecommendedAdapt
     }
 
     private final OnRecommendedClickListener listener;
+    private final Set<Integer> favoriteIds = new HashSet<>();
 
     public RecommendedAdapter(OnRecommendedClickListener listener) {
         super(DIFF_CALLBACK);
         this.listener = listener;
+    }
+
+    public void setFavoriteIds(Set<Integer> ids) {
+        this.favoriteIds.clear();
+        if (ids != null) {
+            this.favoriteIds.addAll(ids);
+        }
+        notifyDataSetChanged();
     }
 
     public void setItems(List<Experience> items) {
@@ -44,7 +55,10 @@ public class RecommendedAdapter extends ListAdapter<Experience, RecommendedAdapt
     @Override
     public void onBindViewHolder(@NonNull RecommendedViewHolder holder, int position) {
         Experience item = getItem(position);
-        holder.bind(item, listener);
+        if (item != null) {
+            item.setFavorite(favoriteIds.contains(item.getId()));
+            holder.bind(item, listener);
+        }
     }
 
     static class RecommendedViewHolder extends RecyclerView.ViewHolder {
