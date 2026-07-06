@@ -15,7 +15,9 @@ import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.example.xplorenow_android.data.model.Experience;
 import com.example.xplorenow_android.databinding.ItemExperienceBinding;
 
+import java.util.HashSet;
 import java.util.Locale;
+import java.util.Set;
 
 public class ExperienceAdapter extends PagingDataAdapter<Experience, ExperienceAdapter.ExperienceViewHolder> {
 
@@ -25,10 +27,19 @@ public class ExperienceAdapter extends PagingDataAdapter<Experience, ExperienceA
     }
 
     private final OnExperienceClickListener listener;
+    private final Set<Integer> favoriteIds = new HashSet<>();
 
     public ExperienceAdapter(OnExperienceClickListener listener) {
         super(DIFF_CALLBACK);
         this.listener = listener;
+    }
+
+    public void setFavoriteIds(Set<Integer> ids) {
+        this.favoriteIds.clear();
+        if (ids != null) {
+            this.favoriteIds.addAll(ids);
+        }
+        notifyDataSetChanged();
     }
 
     @NonNull
@@ -43,6 +54,8 @@ public class ExperienceAdapter extends PagingDataAdapter<Experience, ExperienceA
     public void onBindViewHolder(@NonNull ExperienceViewHolder holder, int position) {
         Experience item = getItem(position);
         if (item != null) {
+            // Forzamos el estado basado en nuestro conjunto local de favoritos
+            item.setFavorite(favoriteIds.contains(item.getId()));
             holder.bind(item, listener);
         }
     }
@@ -59,7 +72,6 @@ public class ExperienceAdapter extends PagingDataAdapter<Experience, ExperienceA
             binding.textName.setText(item.getName());
             binding.textDestination.setText(item.getDestination());
             
-            // Usar categoryLabel si está disponible, de lo contrario usar category
             String categoryDisplay = (item.getCategoryLabel() != null && !item.getCategoryLabel().isEmpty()) 
                     ? item.getCategoryLabel() : item.getCategory();
             binding.textCategory.setText(categoryDisplay);
