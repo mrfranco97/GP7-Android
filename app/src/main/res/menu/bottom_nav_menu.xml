@@ -9,6 +9,10 @@
         android:icon="@drawable/ic_heart"
         android:title="Favoritos" />
     <item
+        android:id="@+id/QrScanFragment"
+        android:icon="@android:drawable/ic_menu_camera"
+        android:title="Check-in" />
+    <item
         android:id="@+id/ProfileFragment"
         android:icon="@android:drawable/ic_menu_myplaces"
         android:title="Perfil" />

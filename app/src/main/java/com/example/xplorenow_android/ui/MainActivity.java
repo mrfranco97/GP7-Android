@@ -74,7 +74,8 @@ public class MainActivity extends AppCompatActivity {
         navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
             if (destination.getId() == R.id.ExperienceListFragment ||
                     destination.getId() == R.id.ProfileFragment ||
-                    destination.getId() == R.id.FavoritesFragment) {
+                    destination.getId() == R.id.FavoritesFragment ||
+                    destination.getId() == R.id.QrScanFragment) {
                 binding.bottomNav.setVisibility(View.VISIBLE);
             } else {
                 binding.bottomNav.setVisibility(View.GONE);

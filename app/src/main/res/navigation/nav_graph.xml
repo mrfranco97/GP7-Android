@@ -144,17 +144,7 @@
             app:argType="string" />
         <action
             android:id="@+id/action_VoucherFragment_to_QrScannerFragment"
-            app:destination="@id/QrScannerFragment" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/QrScannerFragment"
-        android:name="com.example.xplorenow_android.ui.experience.QrScannerFragment"
-        android:label="QR Scanner"
-        tools:layout="@layout/fragment_qr_scanner">
-        <argument
-            android:name="bookingId"
-            app:argType="string" />
+            app:destination="@id/QrScanFragment" />
     </fragment>
 
 
@@ -166,6 +156,18 @@
         <action
             android:id="@+id/action_NewsFragment_to_NewsDetailFragment"
             app:destination="@id/NewsDetailFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/QrScanFragment"
+        android:name="com.example.xplorenow_android.ui.qr.QrScanFragment"
+        android:label="Escanear QR"
+        tools:layout="@layout/fragment_qr_scan">
+        <action
+            android:id="@+id/action_QrScanFragment_to_ExperienceListFragment"
+            app:destination="@id/ExperienceListFragment"
+            app:popUpTo="@id/ExperienceListFragment"
+            app:popUpToInclusive="false" />
     </fragment>
 
     <fragment
